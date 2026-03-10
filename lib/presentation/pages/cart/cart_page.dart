@@ -34,11 +34,10 @@ class CartPage extends StatelessWidget {
             return _buildEmptyState(context);
           }
 
-          // --- LOGIKA HITUNGAN ---
+          // --- LOGIKA HITUNGAN (SINKRON DENGAN CHECKOUT) ---
           final int subtotal = cart.totalPrice;
-          final int deliveryFee = subtotal > 100000 ? 0 : 2000; // Sesuai desain HTML
-          final double tax = subtotal * 0.11; // PPN 11%
-          final double total = subtotal + deliveryFee + tax;
+          final int deliveryFee = 0; // Gratis karena Ambil Di Toko
+          final int total = subtotal + deliveryFee; // Pajak 11% dihapus
 
           return Column(
             children: [
@@ -52,7 +51,7 @@ class CartPage extends StatelessWidget {
                   },
                 ),
               ),
-              _buildSummaryAndAction(context, cart, subtotal, deliveryFee, tax, total),
+              _buildSummaryAndAction(context, cart, subtotal, deliveryFee, total),
             ],
           );
         },
@@ -197,7 +196,7 @@ class CartPage extends StatelessWidget {
   }
 
   // --- 3. SUMMARY & BOTTOM ACTION ---
-  Widget _buildSummaryAndAction(BuildContext context, CartProvider cart, int subtotal, int delivery, double tax, double total) {
+  Widget _buildSummaryAndAction(BuildContext context, CartProvider cart, int subtotal, int delivery, int total) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 24, 16, 32),
       decoration: BoxDecoration(
@@ -217,8 +216,8 @@ class CartPage extends StatelessWidget {
           const SizedBox(height: 16),
           _summaryRow("Subtotal", "Rp ${formatPrice(subtotal)}"),
           const SizedBox(height: 8),
-          _summaryRow("Biaya Pengiriman", "Rp ${formatPrice(delivery)}"),
-          _summaryRow("Pajak (11%)", "Rp ${formatPrice(tax.toInt())}"),
+          _summaryRow("Biaya Pengiriman", delivery == 0 ? "Gratis" : "Rp ${formatPrice(delivery)}"),
+          // Baris Pajak Dihapus
           const Padding(padding: EdgeInsets.symmetric(vertical: 16), child: Divider(color: Color(0xFFE2E8F0))),
           
           // Total Harga & Tombol Checkout
@@ -273,7 +272,7 @@ class CartPage extends StatelessWidget {
           const SizedBox(height: 30),
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
-            style: ElevatedButton.styleFrom(backgroundColor: primaryOrange, shape: StadiumBorder()),
+            style: ElevatedButton.styleFrom(backgroundColor: primaryOrange, shape: const StadiumBorder()),
             child: const Text("Mulai Belanja", style: TextStyle(color: Colors.white)),
           )
         ],
