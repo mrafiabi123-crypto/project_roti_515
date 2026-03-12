@@ -3,13 +3,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-// --- IMPORT STATE MANAGEMENT ---
-import 'presentation/state/auth_provider.dart';
-import 'presentation/state/product_provider.dart';
-import 'presentation/state/cart_provider.dart';
+// --- IMPORT PONDASI ---
+import 'core/constants/app_colors.dart';
+import 'routes/app_routes.dart';
 
-// --- IMPORT HALAMAN UTAMA ---
-import 'presentation/pages/main_nav/main_nav_page.dart'; 
+// --- IMPORT PROVIDERS ---
+import 'features/auth/providers/auth_provider.dart';
+import 'features/product/providers/product_provider.dart';
+import 'features/cart/providers/cart_provider.dart';
+import 'features/favorite/providers/favorite_provider.dart'; 
 
 void main() {
   runApp(
@@ -18,21 +20,17 @@ void main() {
       backgroundColor: const Color(0xFF1E1E1E),
       builder: (context) => MultiProvider(
         providers: [
-          // 1. Food Provider (SUDAH DIPERBAIKI)
-          // Tidak perlu repository lagi, cukup panggil FoodProvider()
-          ChangeNotifierProvider(
-            create: (_) => ProductProvider(),
-          ),
+          // 1. Product Provider
+          ChangeNotifierProvider(create: (_) => ProductProvider()),
 
           // 2. Cart Provider (Keranjang Belanja)
-          ChangeNotifierProvider(
-            create: (_) => CartProvider(),
-          ),
+          ChangeNotifierProvider(create: (_) => CartProvider()),
 
           // 3. Auth Provider (Login/Register)
-          ChangeNotifierProvider(
-            create: (_) => AuthProvider()
-          ),
+          ChangeNotifierProvider(create: (_) => AuthProvider()),
+
+          // 4. Favorite Provider (Favorit Roti)
+          ChangeNotifierProvider(create: (_) => FavoriteProvider()),
         ],
         child: const FoodDiscoveryApp(),
       ),
@@ -49,16 +47,19 @@ class FoodDiscoveryApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       locale: DevicePreview.locale(context),
       builder: DevicePreview.appBuilder,
-      title: 'Food Discovery',
+      title: 'Roti 515', // Nama aplikasi diperbarui
       theme: ThemeData(
-        // Warna Utama Aplikasi (Oranye)
-        primaryColor: const Color(0xFFEC4913),
-        // Warna Latar Belakang
-        scaffoldBackgroundColor: const Color(0xFFF8F6F6),
+        // Menggunakan sinkronisasi warna dari AppColors
+        primaryColor: AppColors.primaryOrange,
+        scaffoldBackgroundColor: AppColors.bgColor,
         useMaterial3: true,
         fontFamily: 'Plus Jakarta Sans', 
+        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primaryOrange),
       ),
-      home: const MainNavPage(), // Masuk ke Halaman Navigasi Bawah
+      
+      // --- SISTEM NAVIGASI TERPUSAT ---
+      initialRoute: AppRoutes.mainNav, // Titik awal aplikasi (Bottom Nav)
+      routes: AppRoutes.getRoutes(),   // Memanggil "Buku Telepon" rute
     );
   }
 }
