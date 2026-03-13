@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
 // Import Provider untuk ambil Token
-import '../../state/auth_provider.dart';
+import '../../../features/auth/providers/auth_provider.dart';
 
 class EditProfilePage extends StatefulWidget {
   final Map<String, dynamic> userData; // Terima data lama dari ProfilePage
