@@ -12,6 +12,7 @@ import 'features/auth/providers/auth_provider.dart';
 import 'features/product/providers/product_provider.dart';
 import 'features/cart/providers/cart_provider.dart';
 import 'features/favorite/providers/favorite_provider.dart'; 
+import 'features/admin/product_admin/providers/admin_product_provider.dart';
 
 void main() {
   runApp(
@@ -31,6 +32,7 @@ void main() {
 
           // 4. Favorite Provider (Favorit Roti)
           ChangeNotifierProvider(create: (_) => FavoriteProvider()),
+          ChangeNotifierProvider(create: (context) => AdminProductProvider()),
         ],
         child: const FoodDiscoveryApp(),
       ),
