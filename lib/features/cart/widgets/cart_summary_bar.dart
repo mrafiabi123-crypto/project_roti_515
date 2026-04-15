@@ -29,7 +29,7 @@ class CartSummaryBar extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 30,
             offset: const Offset(0, -8),
           )
@@ -97,7 +97,7 @@ class CartSummaryBar extends StatelessWidget {
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(9999)),
               elevation: 4,
-              shadowColor: AppColors.primaryOrange.withOpacity(0.4),
+              shadowColor: AppColors.primaryOrange.withValues(alpha: 0.4),
             ),
             child: Text(
               "Lanjutkan ke Pembayaran",
