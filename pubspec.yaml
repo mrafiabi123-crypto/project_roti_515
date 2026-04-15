@@ -40,6 +40,10 @@ dependencies:
   google_fonts: ^8.0.2
   font_awesome_flutter: ^10.7.0
   image_picker: ^1.2.1
+  fl_chart: ^1.2.0
+  shared_preferences: ^2.5.5
+  web: ^1.1.1
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:

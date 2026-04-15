@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 // Import Provider untuk ambil Token
 import '../../../features/auth/providers/auth_provider.dart';
+import '../../../core/network/api_service.dart';
 
 class EditProfilePage extends StatefulWidget {
   final Map<String, dynamic> userData; // Terima data lama dari ProfilePage
@@ -23,8 +24,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   
   bool _isLoading = false;
 
-  // URL Backend (Sesuaikan dengan device Anda)
-  final String _apiUrl = 'http://localhost:8080/api/profile';
+  final String _apiUrl = ApiService.profile;
 
   @override
   void initState() {
@@ -207,7 +207,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   backgroundColor: primaryColor,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   elevation: 4,
-                  shadowColor: primaryColor.withOpacity(0.4),
+                  shadowColor: primaryColor.withValues(alpha: 0.4),
                 ),
                 child: _isLoading 
                   ? const CircularProgressIndicator(color: Colors.white) 
@@ -259,7 +259,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? primaryColor.withOpacity(0.1) : Colors.grey.shade50,
+          color: isSelected ? primaryColor.withValues(alpha: 0.1) : Colors.grey.shade50,
           border: Border.all(color: isSelected ? primaryColor : Colors.grey.shade200),
           borderRadius: BorderRadius.circular(12),
         ),

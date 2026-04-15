@@ -2,12 +2,23 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
-import 'package:google_fonts/google_fonts.dart';
+
+// --- IMPORT COMPONENT WIDGETS ---
+// Mengimpor sub-komponen UI modular khusus layar profil
+import '../widgets/profile_top_nav_bar.dart';
+import '../widgets/profile_header.dart';
+import '../widgets/profile_section_label.dart';
+import '../widgets/profile_menu_tile.dart';
+import '../widgets/profile_logout_button.dart';
+import 'address_management_screen.dart';
 
 // --- IMPORT PONDASI ---
 import '../../../core/constants/app_colors.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../../core/network/api_service.dart';
+import '../../../presentation/pages/profile/order_history_page.dart';
 
+/// Layar utama Profil Pengguna (StatefulWidget untuk mengakomodasi state loading dan data asinkron).
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
@@ -16,21 +27,29 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  // Menyimpan data profile hasil fetch API dalam Map
   Map<String, dynamic>? _userData;
+  
+  // Flag indikator proses request API
   bool _isLoading = true;
 
-  // URL Backend (Ganti ke 127.0.0.1 agar lebih stabil di browser)
-  final String _apiUrl = 'http://127.0.0.1:8080/api/profile';
+  // Mendapatkan path endpoint API profile dari layanan terpusat
+  final String _apiUrl = ApiService.profile;
 
   @override
   void initState() {
     super.initState();
+    // Memanggil API fetch secara implisit sesaat setelah inisialisasi State
     _fetchProfile();
   }
 
+  /// Memuat profil data dari Backend API dengan Autorisasi Token Bearer.
   Future<void> _fetchProfile() async {
     try {
+      // Mengambil token sesi login aktual dari state AuthProvider
       final token = Provider.of<AuthProvider>(context, listen: false).token;
+      
+      // Request method GET untuk mengambil detail data diri (Profile)
       final response = await http.get(
         Uri.parse(_apiUrl),
         headers: {
@@ -39,65 +58,104 @@ class _ProfilePageState extends State<ProfilePage> {
         },
       );
 
+      // Respon HTTP valid
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        
+        // Memastikan widget masih di-mount sebelum memicu re-render
         if (mounted) {
           setState(() {
-            _userData = data['user'];
-            _isLoading = false;
+            _userData = data['user']; // Menyalin data objek 'user' dari respon JSON
+            _isLoading = false; // Mengakhiri state loading
           });
         }
       } else {
+        // Gagal mengambil data karena HTTP code tidak valid
         if (mounted) setState(() => _isLoading = false);
       }
     } catch (e) {
+      // Gagal tersambung internet atau server mati
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Data Default & Inisial
-    String fullName = _userData?['name'] ?? "User";
-    String email = _userData?['email'] ?? "Email@gmail.com";
+    // Mengekstrak informasi user dari Map State. Fallback string jika null.
+    String fullName = _userData?['name'] ?? "Loading...";
+    String email = _userData?['email'] ?? "memuat..";
     
     return Scaffold(
-      backgroundColor: AppColors.bgColor, // Menggunakan F8F7F6 dari AppColors
+      backgroundColor: AppColors.bgColor, // Mengatur standar background warna aplikasi
       body: _isLoading
+          // Render progress indikator selama response API dari endpoint profile belum selesai
           ? const Center(child: CircularProgressIndicator(color: AppColors.primaryOrange))
+          // Render Main Layout Profil jika data siap
           : SafeArea(
               child: SingleChildScrollView(
                 child: Column(
                   children: [
                     // --- 1. CUSTOM TOP NAVIGATION ---
-                    _buildTopNavigationBar(),
+                    // Menampilkan bilah navigasi Header dengan title "Profil"
+                    const ProfileTopNavBar(),
 
                     // --- 2. HEADER PROFIL (AVATAR & INFO) ---
-                    _buildHeaderSection(fullName, email),
+                    // Mengoper data API (_userData) ke widget render Header
+                    ProfileHeader(name: fullName, email: email),
 
                     const SizedBox(height: 24),
 
                     // --- 3. MENU SECTION: AKTIVITAS AKUN ---
-                    _buildSectionLabel("Aktivitas Akun"),
-                    _buildMenuTile(
+                    // Label seksio
+                    const ProfileSectionLabel(label: "Aktivitas Akun"),
+                    
+                    // Modul Tombol Navigasi Menu: Riwayat Pesanan
+                    ProfileMenuTile(
                       icon: Icons.receipt_long_rounded,
                       title: "Riwayat Pesanan",
-                      onTap: () {}, // Hubungkan ke OrderHistoryPage jika perlu
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const OrderHistoryPage(),
+                          ),
+                        );
+                      },
                     ),
-                    _buildMenuTile(
+                    
+                    // Modul Tombol Navigasi Menu: Modifikasi Alamat
+                    ProfileMenuTile(
                       icon: Icons.location_on_rounded,
-                      title: "Alamat",
-                      subtitle: "------------",
-                      onTap: () {},
+                      title: "Alamat Lengkap",
+                      subtitle: (_userData?['address'] as String? ?? "").isNotEmpty
+                          ? _userData!['address']
+                          : "Tambahkan / Ubah",
+                      onTap: () async {
+                        final newAddress = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AddressManagementScreen(
+                              currentAddress: _userData?['address'] ?? "Ambil Di Toko",
+                            ),
+                          ),
+                        );
+                        if (newAddress != null && mounted) {
+                          setState(() {
+                            _userData?['address'] = newAddress;
+                          });
+                        }
+                      },
                     ),
 
                     const SizedBox(height: 24),
 
                     // --- 4. MENU SECTION: PREFERENSI ---
-                    _buildSectionLabel("Preferensi"),
-                    _buildMenuTile(
+                    const ProfileSectionLabel(label: "Preferensi"),
+                    
+                    // Modul Tombol Navigasi Menu: Pengaturan
+                    ProfileMenuTile(
                       icon: Icons.settings_rounded,
-                      title: "Pengaturan",
+                      title: "Pengaturan Utama",
                       subtitle: "Notifikasi, Privasi",
                       onTap: () {},
                     ),
@@ -105,164 +163,15 @@ class _ProfilePageState extends State<ProfilePage> {
                     const SizedBox(height: 32),
 
                     // --- 5. TOMBOL LOGOUT (SOFT RED STYLE) ---
-                    _buildLogoutButton(),
+                    // Memuat Widget kustom konfirmasi Logout system (terhubung ke AuthProvider)
+                    const ProfileLogoutButton(),
 
-                    const SizedBox(height: 100), // Spasi Bottom Nav
+                    // Bantalan margin penahan dari BottomNavigationBar utama Scaffold
+                    const SizedBox(height: 100), 
                   ],
                 ),
               ),
             ),
-    );
-  }
-
-  // --- WIDGET HELPERS ---
-
-  Widget _buildTopNavigationBar() {
-    return Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Container(
-            width: 40, height: 40,
-            decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-            child: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.primaryOrange, size: 16),
-          ),
-          Text(
-            "Profil",
-            style: GoogleFonts.pragatiNarrow(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textDark),
-          ),
-          const SizedBox(width: 40), // Spacer penyeimbang
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeaderSection(String name, String email) {
-    return Column(
-      children: [
-        Stack(
-          children: [
-            Container(
-              width: 128, height: 128,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 4),
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 15, offset: const Offset(0, 10))],
-                image: const DecorationImage(
-                  image: NetworkImage('https://placehold.co/128x128'), // Ganti dengan _userData?['photo_url'] jika ada
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: 0, right: 0,
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: const BoxDecoration(color: AppColors.primaryOrange, shape: BoxShape.circle),
-                child: const Icon(Icons.camera_alt_rounded, color: Colors.white, size: 14),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Text(
-          name,
-          style: GoogleFonts.pragatiNarrow(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textDark),
-        ),
-        Text(
-          email,
-          style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.textGrey),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSectionLabel(String label) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(32, 16, 24, 8),
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: Text(
-          label.toUpperCase(),
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textHint, letterSpacing: 1.2,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMenuTile({required IconData icon, required String title, String? subtitle, required VoidCallback onTap}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(48),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(48),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 40, height: 40,
-                decoration: BoxDecoration(color: AppColors.primaryOrange.withOpacity(0.1), shape: BoxShape.circle),
-                child: Icon(icon, color: AppColors.primaryOrange, size: 20),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title, style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textDark)),
-                    if (subtitle != null)
-                      Text(subtitle, style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.textGrey)),
-                  ],
-                ),
-              ),
-              const Icon(Icons.chevron_right_rounded, color: AppColors.textHint),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLogoutButton() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: InkWell(
-          onTap: () => Provider.of<AuthProvider>(context, listen: false).logout(),
-          borderRadius: BorderRadius.circular(48),
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFEF2F2), // Red soft background
-              borderRadius: BorderRadius.circular(48),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 32, height: 32,
-                  decoration: const BoxDecoration(color: Color(0xFFFEE2E2), shape: BoxShape.circle),
-                  child: const Icon(Icons.logout_rounded, color: Color(0xFFDC2626), size: 16),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  "Keluar",
-                  style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.bold, color: const Color(0xFFDC2626)),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
