@@ -17,7 +17,7 @@ class HomePromoBanner extends StatelessWidget {
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: AppColors.textDark.withOpacity(0.1),
+              color: AppColors.textDark.withValues(alpha: 0.1),
               blurRadius: 15,
               offset: const Offset(0, 10),
             )
@@ -33,7 +33,7 @@ class HomePromoBanner extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(24),
             gradient: LinearGradient(
-              colors: [AppColors.textDark.withOpacity(0.8), Colors.transparent],
+              colors: [AppColors.textDark.withValues(alpha: 0.8), Colors.transparent],
               begin: Alignment.centerLeft,
             ),
           ),
@@ -63,7 +63,7 @@ class HomePromoBanner extends StatelessWidget {
                   borderRadius: BorderRadius.circular(9999),
                   boxShadow: [
                     BoxShadow(
-                        color: AppColors.textDark.withOpacity(0.1),
+                        color: AppColors.textDark.withValues(alpha: 0.1),
                         blurRadius: 4)
                   ],
                 ),
