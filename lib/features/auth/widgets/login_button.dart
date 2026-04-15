@@ -6,11 +6,13 @@ import '../../../core/constants/app_colors.dart';
 class LoginButton extends StatelessWidget {
   final bool isLoading;
   final VoidCallback? onPressed;
+  final String text;
 
   const LoginButton({
     super.key,
     required this.isLoading,
     required this.onPressed,
+    this.text = "Log In",
   });
 
   @override
@@ -22,7 +24,7 @@ class LoginButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(48),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 6,
             offset: const Offset(0, 4),
             spreadRadius: -1,
@@ -48,7 +50,7 @@ class LoginButton extends StatelessWidget {
                 ),
               )
             : Text(
-                "Log In",
+                text,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
