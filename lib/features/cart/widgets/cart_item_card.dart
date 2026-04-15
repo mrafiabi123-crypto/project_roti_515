@@ -26,7 +26,7 @@ class CartItemCard extends StatelessWidget {
         border: Border.all(color: AppColors.divider),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 2,
               offset: const Offset(0, 1))
         ],
@@ -192,7 +192,7 @@ class _CircleBtn extends StatelessWidget {
           boxShadow: hasShadow
               ? [
                   BoxShadow(
-                    color: AppColors.primaryOrange.withOpacity(0.3),
+                    color: AppColors.primaryOrange.withValues(alpha: 0.3),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   )

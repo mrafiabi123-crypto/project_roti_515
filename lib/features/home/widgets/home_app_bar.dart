@@ -4,7 +4,8 @@ import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../cart/providers/cart_provider.dart';
-import '../../cart/screens/cart_screen.dart';
+import '../../cart/widgets/animated_cart_icon.dart';
+import '../../notification/widgets/notification_icon_badge.dart';
 
 class HomeAppBar extends StatelessWidget {
   const HomeAppBar({super.key});
@@ -16,7 +17,7 @@ class HomeAppBar extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.only(top: 50, bottom: 20),
       decoration: BoxDecoration(
-        color: AppColors.bgColor.withOpacity(0.95),
+        color: AppColors.bgColor.withValues(alpha: 0.95),
       ),
       child: Column(
         children: [
@@ -33,60 +34,18 @@ class HomeAppBar extends StatelessWidget {
                     fontWeight: FontWeight.normal,
                   ),
                 ),
-                _HomeCartIcon(cart: cart),
+                Row(
+                  children: [
+                    const NotificationIconBadge(),
+                    const SizedBox(width: 12),
+                    AnimatedCartIcon(cart: cart),
+                  ],
+                ),
               ],
             ),
           ),
           const SizedBox(height: 15),
           const _HomeSearchBar(),
-        ],
-      ),
-    );
-  }
-}
-
-class _HomeCartIcon extends StatelessWidget {
-  final CartProvider cart;
-  const _HomeCartIcon({required this.cart});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const CartScreen()),
-      ),
-      child: Stack(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                    color: AppColors.textDark.withOpacity(0.05),
-                    blurRadius: 10)
-              ],
-              border: Border.all(color: AppColors.divider),
-            ),
-            child: const Icon(Icons.shopping_cart_outlined,
-                color: AppColors.textBrown, size: 24),
-          ),
-          if (cart.totalItems > 0)
-            Positioned(
-              right: 8,
-              top: 8,
-              child: Container(
-                width: 10,
-                height: 10,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryOrange,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.white, width: 1.5),
-                ),
-              ),
-            ),
         ],
       ),
     );
@@ -107,14 +66,14 @@ class _HomeSearchBar extends StatelessWidget {
         border: Border.all(color: AppColors.divider),
         boxShadow: [
           BoxShadow(
-              color: AppColors.textDark.withOpacity(0.05), blurRadius: 2)
+              color: AppColors.textDark.withValues(alpha: 0.05), blurRadius: 2)
         ],
       ),
       child: Row(
         children: [
           const SizedBox(width: 16),
           Icon(Icons.search_rounded,
-              color: AppColors.primaryOrange.withOpacity(0.7), size: 18),
+              color: AppColors.primaryOrange.withValues(alpha: 0.7), size: 18),
           const SizedBox(width: 12),
           Expanded(
             child: TextField(

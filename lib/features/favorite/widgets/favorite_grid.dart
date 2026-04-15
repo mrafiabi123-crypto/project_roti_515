@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/widgets/staggered_fade_animation.dart';
 import '../providers/favorite_provider.dart';
 import 'favorite_card.dart';
 import 'favorite_empty_state.dart';
@@ -22,13 +23,17 @@ class FavoriteGrid extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(20, 120, 20, 100),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
-            childAspectRatio: 0.58,
+            mainAxisExtent: 280,
             crossAxisSpacing: 15,
             mainAxisSpacing: 15,
           ),
           itemCount: favorites.length,
-          itemBuilder: (context, index) =>
-              FavoriteCard(product: favorites[index]),
+          itemBuilder: (context, index) {
+            return StaggeredFadeAnimation(
+              index: index,
+              child: FavoriteCard(product: favorites[index]),
+            );
+          },
         );
       },
     );

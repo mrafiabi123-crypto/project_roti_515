@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../providers/admin_product_provider.dart';
+import '../../../auth/providers/auth_provider.dart';
+import '../../../../core/utils/premium_snackbar.dart';
 //  Import halaman tambah produk
 import 'add_product_screen.dart';
 
@@ -135,8 +137,15 @@ class _ProductAdminScreenState extends State<ProductAdminScreen> {
             price: "Rp $priceStr",
             stock: stock,
             imageUrl: imageUrl,
-            onEdit: () => _showSnackBar("Edit $name ditekan"),
-            onDelete: () => _showSnackBar("Hapus $name ditekan"),
+            onEdit: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AddProductScreen(initialProduct: product),
+                ),
+              );
+            },
+            onDelete: () => _confirmDelete(context, product),
           );
         },
       ),
@@ -145,14 +154,14 @@ class _ProductAdminScreenState extends State<ProductAdminScreen> {
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: AppColors.bgColor.withOpacity(0.9),
+      backgroundColor: AppColors.bgColor.withValues(alpha: 0.9),
       elevation: 0,
       centerTitle: false,
       title: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: AppColors.primaryOrange.withOpacity(0.1), borderRadius: BorderRadius.circular(16)),
+            decoration: BoxDecoration(color: AppColors.primaryOrange.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(16)),
             child: const Icon(Icons.bakery_dining_rounded, color: AppColors.primaryOrange, size: 22),
           ),
           const SizedBox(width: 12),
@@ -174,8 +183,8 @@ class _ProductAdminScreenState extends State<ProductAdminScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(48),
-        border: Border.all(color: AppColors.primaryOrange.withOpacity(0.1)),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4, offset: const Offset(0, 1))],
+        border: Border.all(color: AppColors.primaryOrange.withValues(alpha: 0.1)),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 4, offset: const Offset(0, 1))],
       ),
       child: TextField(
         controller: _searchController,
@@ -194,7 +203,7 @@ class _ProductAdminScreenState extends State<ProductAdminScreen> {
   Widget _buildFilterTabs(AdminProductProvider provider) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.primaryOrange.withOpacity(0.1)))),
+      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.primaryOrange.withValues(alpha: 0.1)))),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -238,8 +247,8 @@ class _ProductAdminScreenState extends State<ProductAdminScreen> {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white, borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.primaryOrange.withOpacity(0.05)),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4, offset: const Offset(0, 1))],
+        border: Border.all(color: AppColors.primaryOrange.withValues(alpha: 0.05)),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 4, offset: const Offset(0, 1))],
       ),
       child: Row(
         children: [
@@ -292,14 +301,43 @@ class _ProductAdminScreenState extends State<ProductAdminScreen> {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+        decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
         child: Icon(icon, color: color, size: 20),
       ),
     );
   }
 
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message, style: GoogleFonts.plusJakartaSans()), backgroundColor: AppColors.textDark));
+  void _confirmDelete(BuildContext context, Map<String, dynamic> product) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Hapus Produk?", style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold)),
+        content: Text("Apakah Anda yakin ingin menghapus ${product['name']}? Tindakan ini tidak dapat dibatalkan.", style: GoogleFonts.plusJakartaSans()),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("Batal", style: GoogleFonts.plusJakartaSans(color: Colors.grey)),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              final provider = Provider.of<AdminProductProvider>(context, listen: false);
+              final auth = Provider.of<AuthProvider>(context, listen: false);
+              final token = auth.token ?? '';
+              
+              bool success = await provider.deleteProduct(product['id'], token);
+              if (mounted) {
+                if (success) {
+                  PremiumSnackbar.showSuccess(context, "Produk berhasil dihapus");
+                } else {
+                  PremiumSnackbar.showError(context, "Gagal menghapus produk: ${provider.errorMessage}");
+                }
+              }
+            },
+            child: Text("Hapus", style: GoogleFonts.plusJakartaSans(color: Colors.red, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
   }
 }

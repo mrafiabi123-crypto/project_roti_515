@@ -1,8 +1,7 @@
 import 'dart:convert';
-import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import '../../../../core/network/api_service.dart';
 
 class AdminProductProvider extends ChangeNotifier {
   List<dynamic> _allProducts = [];
@@ -15,13 +14,8 @@ class AdminProductProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   int get selectedTab => _selectedTab;
 
-  String get _baseUrl {
-    const String port = '8080';
-    if (kIsWeb) return 'http://localhost:$port';
-    return Platform.isAndroid ? 'http://10.0.2.2:$port' : 'http://localhost:$port';
-  }
-
-  String get _apiUrl => '$_baseUrl/api/foods';
+  String get _baseUrl => ApiService.baseDomain;
+  String get _apiUrl => ApiService.foods;
 
   List<dynamic> get filteredProducts {
     var list = _allProducts.where((p) {
@@ -29,8 +23,11 @@ class AdminProductProvider extends ChangeNotifier {
       return name.contains(_searchQuery);
     }).toList();
 
-    if (_selectedTab == 1) list = list.where((p) => (p['stock'] ?? 0) == 0).toList();
-    else if (_selectedTab == 2) list = list.where((p) => (p['stock'] ?? 0) > 0 && (p['stock'] ?? 0) <= 15).toList();
+    if (_selectedTab == 1) {
+      list = list.where((p) => (p['stock'] ?? 0) == 0).toList();
+    } else if (_selectedTab == 2) {
+      list = list.where((p) => (p['stock'] ?? 0) > 0 && (p['stock'] ?? 0) <= 15).toList();
+    }
     
     return list;
   }
@@ -87,8 +84,82 @@ class AdminProductProvider extends ChangeNotifier {
     }
   }
 
-  // Tambahkan import di paling atas jika belum ada
-// import 'dart:convert';
+  // --- FUNGSI UPDATE PRODUK ---
+  Future<bool> updateProduct({
+    required int id,
+    required String name,
+    required String category,
+    required int price,
+    required int stock,
+    required String token,
+    String? imageUrl,
+  }) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final body = jsonEncode({
+        "name": name,
+        "category": category,
+        "price": price,
+        "stock": stock,
+        if (imageUrl != null) "image_url": imageUrl,
+      });
+
+      final response = await http.put(
+        Uri.parse('$_baseUrl/api/admin/foods/$id'),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+        body: body,
+      );
+
+      if (response.statusCode == 200) {
+        await fetchProducts();
+        return true;
+      } else {
+        _errorMessage = "Gagal update: ${response.body}";
+        return false;
+      }
+    } catch (e) {
+      _errorMessage = "Terjadi kesalahan koneksi.";
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // --- FUNGSI HAPUS PRODUK ---
+  Future<bool> deleteProduct(int id, String token) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final response = await http.delete(
+        Uri.parse('$_baseUrl/api/admin/foods/$id'),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        await fetchProducts();
+        return true;
+      } else {
+        _errorMessage = "Gagal hapus: ${response.body}";
+        return false;
+      }
+    } catch (e) {
+      _errorMessage = "Terjadi kesalahan koneksi.";
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 
   // --- FUNGSI TAMBAH PRODUK ---
   Future<bool> addProduct({
@@ -96,6 +167,7 @@ class AdminProductProvider extends ChangeNotifier {
     required String category,
     required int price,
     required int stock,
+    required String token,
     required String imageUrl, // Sementara kita kirim nama file dulu
   }) async {
     _isLoading = true;
@@ -115,7 +187,10 @@ class AdminProductProvider extends ChangeNotifier {
       // Note: Jika login sudah aktif, tambahkan header Authorization: Bearer <token>
       final response = await http.post(
         Uri.parse('$_baseUrl/api/admin/foods'),
-        headers: {"Content-Type": "application/json"},
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
         body: body,
       );
 

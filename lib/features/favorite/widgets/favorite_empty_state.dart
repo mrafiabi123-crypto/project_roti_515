@@ -15,7 +15,7 @@ class FavoriteEmptyState extends StatelessWidget {
           Icon(
             Icons.favorite_border_rounded,
             size: 64,
-            color: AppColors.textGrey.withOpacity(0.3),
+            color: AppColors.textGrey.withValues(alpha: 0.3),
           ),
           const SizedBox(height: 16),
           Text(

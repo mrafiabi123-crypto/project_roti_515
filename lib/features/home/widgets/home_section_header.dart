@@ -65,7 +65,7 @@ class _SmallArrow extends StatelessWidget {
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-              color: AppColors.textDark.withOpacity(0.05), blurRadius: 2)
+              color: AppColors.textDark.withValues(alpha: 0.05), blurRadius: 2)
         ],
         border: Border.all(color: AppColors.divider),
       ),

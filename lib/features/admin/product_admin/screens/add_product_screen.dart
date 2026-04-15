@@ -8,9 +8,12 @@ import 'package:image_picker/image_picker.dart'; // ✅ Import image_picker
 
 import '../../../../core/constants/app_colors.dart';
 import '../providers/admin_product_provider.dart';
+import '../../../auth/providers/auth_provider.dart';
+import '../../../../core/utils/premium_snackbar.dart';
 
 class AddProductScreen extends StatefulWidget {
-  const AddProductScreen({super.key});
+  final Map<String, dynamic>? initialProduct;
+  const AddProductScreen({super.key, this.initialProduct});
 
   @override
   State<AddProductScreen> createState() => _AddProductScreenState();
@@ -18,17 +21,29 @@ class AddProductScreen extends StatefulWidget {
 
 class _AddProductScreenState extends State<AddProductScreen> {
   final _formKey = GlobalKey<FormState>();
-  
+
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _stockController = TextEditingController();
   final TextEditingController _descController = TextEditingController();
-  
+
   String? _selectedCategory;
 
   // ✅ Variabel untuk menyimpan gambar yang dipilih
   XFile? _imageFile;
   final ImagePicker _picker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialProduct != null) {
+      _nameController.text = widget.initialProduct!['name'] ?? '';
+      _priceController.text = (widget.initialProduct!['price'] ?? 0).toString();
+      _stockController.text = (widget.initialProduct!['stock'] ?? 0).toString();
+      _descController.text = widget.initialProduct!['description'] ?? '';
+      _selectedCategory = widget.initialProduct!['category'];
+    }
+  }
 
   @override
   void dispose() {
@@ -46,7 +61,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
         source: ImageSource.gallery,
         imageQuality: 80, // Kompres sedikit agar tidak terlalu besar
       );
-      
+
       if (pickedFile != null) {
         setState(() {
           _imageFile = pickedFile;
@@ -63,43 +78,74 @@ class _AddProductScreenState extends State<AddProductScreen> {
         _showSnackBar("Pilih kategori terlebih dahulu!");
         return;
       }
-      if (_imageFile == null) {
+      if (_imageFile == null && widget.initialProduct == null) {
         _showSnackBar("Pilih gambar produk terlebih dahulu!");
         return;
       }
 
-      final provider = Provider.of<AdminProductProvider>(context, listen: false);
+      final provider = Provider.of<AdminProductProvider>(
+        context,
+        listen: false,
+      );
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      final token = auth.token ?? '';
+
+      final navigator = Navigator.of(context);
 
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => const Center(child: CircularProgressIndicator(color: AppColors.primaryOrange)),
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(color: AppColors.primaryOrange),
+        ),
       );
 
       // TODO: Nantinya imageUrl ini akan diganti dengan proses Upload Multipart ke Golang
-      bool success = await provider.addProduct(
-        name: _nameController.text,
-        category: _selectedCategory!,
-        price: int.parse(_priceController.text),
-        stock: int.parse(_stockController.text),
-        imageUrl: "/static/${_imageFile!.name}", // Sementara simulasi nama file
-      );
+      bool success;
+      if (widget.initialProduct != null) {
+        success = await provider.updateProduct(
+          id: widget.initialProduct!['id'],
+          name: _nameController.text,
+          category: _selectedCategory!,
+          price: int.parse(_priceController.text),
+          stock: int.parse(_stockController.text),
+          token: token,
+          imageUrl: _imageFile != null ? "/static/${_imageFile!.name}" : null,
+        );
+      } else {
+        success = await provider.addProduct(
+          name: _nameController.text,
+          category: _selectedCategory!,
+          price: int.parse(_priceController.text),
+          stock: int.parse(_stockController.text),
+          token: token,
+          imageUrl: "/static/${_imageFile!.name}",
+        );
+      }
 
-      Navigator.pop(context); // Tutup loading
+      if (!mounted) return;
+      navigator.pop(); // Tutup loading
 
       if (success) {
-        _showSnackBar("✅ Produk berhasil ditambahkan!");
-        Navigator.pop(context);
+        PremiumSnackbar.showSuccess(
+          context,
+          widget.initialProduct != null
+              ? "Produk berhasil diperbarui"
+              : "Produk berhasil ditambahkan",
+        );
+        navigator.pop();
       } else {
-        _showSnackBar("❌ Gagal: ${provider.errorMessage}");
+        PremiumSnackbar.showError(context, provider.errorMessage ?? "Gagal menyimpan produk");
       }
     }
   }
 
   void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message, style: GoogleFonts.plusJakartaSans())),
-    );
+    if (message.contains("berhasil")) {
+      PremiumSnackbar.showSuccess(context, message.replaceAll("✅ ", ""));
+    } else {
+      PremiumSnackbar.showError(context, message.replaceAll("❌ ", ""));
+    }
   }
 
   @override
@@ -196,21 +242,30 @@ class _AddProductScreenState extends State<AddProductScreen> {
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
           child: AppBar(
-            backgroundColor: const Color(0xFFF8F7F6).withOpacity(0.8),
+            backgroundColor: const Color(0xFFF8F7F6).withValues(alpha: 0.8),
             elevation: 0,
             automaticallyImplyLeading: false,
-            shape: Border(bottom: BorderSide(color: AppColors.primaryOrange.withOpacity(0.1))),
+            shape: Border(
+              bottom: BorderSide(
+                color: AppColors.primaryOrange.withValues(alpha: 0.1),
+              ),
+            ),
             title: Row(
               children: [
                 GestureDetector(
                   onTap: () => Navigator.pop(context),
                   child: Container(
-                    width: 40, height: 40,
+                    width: 40,
+                    height: 40,
                     decoration: BoxDecoration(
-                      color: AppColors.primaryOrange.withOpacity(0.1),
+                      color: AppColors.primaryOrange.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.arrow_back_rounded, color: AppColors.primaryOrange, size: 20),
+                    child: const Icon(
+                      Icons.arrow_back_rounded,
+                      color: AppColors.primaryOrange,
+                      size: 20,
+                    ),
                   ),
                 ),
                 Expanded(
@@ -218,7 +273,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     child: Padding(
                       padding: const EdgeInsets.only(right: 40),
                       child: Text(
-                        "Tambah Produk",
+                        widget.initialProduct != null
+                            ? "Edit Produk"
+                            : "Tambah Produk",
                         style: GoogleFonts.plusJakartaSans(
                           color: const Color(0xFF0F172A),
                           fontSize: 18,
@@ -241,7 +298,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
       padding: const EdgeInsets.only(bottom: 16),
       child: Text(
         text,
-        style: GoogleFonts.plusJakartaSans(color: const Color(0xFF64748B), fontSize: 14),
+        style: GoogleFonts.plusJakartaSans(
+          color: const Color(0xFF64748B),
+          fontSize: 14,
+        ),
       ),
     );
   }
@@ -267,17 +327,27 @@ class _AddProductScreenState extends State<AddProductScreen> {
       borderRadius: BorderRadius.circular(48),
       child: Container(
         width: double.infinity,
-        padding: EdgeInsets.symmetric(vertical: _imageFile == null ? 52 : 0), // Hilangkan padding jika ada gambar
+        padding: EdgeInsets.symmetric(
+          vertical: _imageFile == null ? 52 : 0,
+        ), // Hilangkan padding jika ada gambar
         decoration: BoxDecoration(
-          color: AppColors.primaryOrange.withOpacity(0.05),
+          color: AppColors.primaryOrange.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(48),
-          border: Border.all(color: AppColors.primaryOrange.withOpacity(0.3), width: 2),
+          border: Border.all(
+            color: AppColors.primaryOrange.withValues(alpha: 0.3),
+            width: 2,
+          ),
         ),
-        clipBehavior: Clip.hardEdge, // Agar gambar yang di-load mengikuti bentuk radius 48
+        clipBehavior: Clip
+            .hardEdge, // Agar gambar yang di-load mengikuti bentuk radius 48
         child: _imageFile == null
             ? Column(
                 children: [
-                  const Icon(Icons.cloud_upload_outlined, color: AppColors.primaryOrange, size: 32),
+                  const Icon(
+                    Icons.cloud_upload_outlined,
+                    color: AppColors.primaryOrange,
+                    size: 32,
+                  ),
                   const SizedBox(height: 8),
                   Text(
                     "Unggah Gambar Produk",
@@ -291,61 +361,114 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   Text(
                     "Format yang didukung: JPG, PNG. Ukuran maksimum 2MB",
                     textAlign: TextAlign.center,
-                    style: GoogleFonts.plusJakartaSans(color: const Color(0xFF94A3B8), fontSize: 12),
+                    style: GoogleFonts.plusJakartaSans(
+                      color: const Color(0xFF94A3B8),
+                      fontSize: 12,
+                    ),
                   ),
                 ],
               )
             // Tampilkan gambar berdasarkan platform (Web vs HP)
-            : kIsWeb 
-                ? Image.network(_imageFile!.path, fit: BoxFit.cover, height: 200, width: double.infinity)
-                : Image.file(File(_imageFile!.path), fit: BoxFit.cover, height: 200, width: double.infinity),
+            : kIsWeb
+            ? Image.network(
+                _imageFile!.path,
+                fit: BoxFit.cover,
+                height: 200,
+                width: double.infinity,
+              )
+            : Image.file(
+                File(_imageFile!.path),
+                fit: BoxFit.cover,
+                height: 200,
+                width: double.infinity,
+              ),
       ),
     );
   }
 
-  Widget _buildPillTextField({required TextEditingController controller, required String hint, bool isNumber = false}) {
+  Widget _buildPillTextField({
+    required TextEditingController controller,
+    required String hint,
+    bool isNumber = false,
+  }) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(48),
-        border: Border.all(color: AppColors.primaryOrange.withOpacity(0.2)),
+        border: Border.all(
+          color: AppColors.primaryOrange.withValues(alpha: 0.2),
+        ),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: TextFormField(
         controller: controller,
         keyboardType: isNumber ? TextInputType.number : TextInputType.text,
-        style: GoogleFonts.plusJakartaSans(fontSize: 16, color: const Color(0xFF0F172A)),
+        style: GoogleFonts.plusJakartaSans(
+          fontSize: 16,
+          color: const Color(0xFF0F172A),
+        ),
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: GoogleFonts.plusJakartaSans(color: const Color(0xFF94A3B8)),
+          hintStyle: GoogleFonts.plusJakartaSans(
+            color: const Color(0xFF94A3B8),
+          ),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(vertical: 16),
         ),
-        validator: (value) => value == null || value.isEmpty ? "Wajib diisi" : null,
+        validator: (value) =>
+            value == null || value.isEmpty ? "Wajib diisi" : null,
       ),
     );
   }
 
   Widget _buildPillDropdown() {
+    final List<String> categories = [
+      "Roti Kering",
+      "Roti Basah",
+      "Kue",
+      "Camilan",
+      "Biskuit",
+    ];
+
+    // Safety check: jika _selectedCategory tidak ada di daftar, reset ke null atau kategori pertama
+    if (_selectedCategory != null && !categories.contains(_selectedCategory)) {
+      _selectedCategory = null;
+    }
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(48),
-        border: Border.all(color: AppColors.primaryOrange.withOpacity(0.2)),
+        border: Border.all(
+          color: AppColors.primaryOrange.withValues(alpha: 0.2),
+        ),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: _selectedCategory,
-          hint: Text("Pilih Kategori", style: GoogleFonts.plusJakartaSans(color: const Color(0xFF94A3B8))),
+          hint: Text(
+            "Pilih Kategori",
+            style: GoogleFonts.plusJakartaSans(color: const Color(0xFF94A3B8)),
+          ),
           isExpanded: true,
-          icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF6B7280)),
-          items: ["Roti Kering", "Roti Basah", "Kue", "Camilan"].map((String value) {
-            return DropdownMenuItem<String>(
-              value: value,
-              child: Text(value, style: GoogleFonts.plusJakartaSans(color: const Color(0xFF0F172A))),
-            );
-          }).toList(),
+          icon: const Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: Color(0xFF6B7280),
+          ),
+          items: ["Roti Kering", "Roti Basah", "Kue", "Camilan", "Biskuit"].map(
+            (String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(
+                  value,
+                  style: GoogleFonts.plusJakartaSans(
+                    color: const Color(0xFF0F172A),
+                  ),
+                ),
+              );
+            },
+          ).toList(),
           onChanged: (val) => setState(() => _selectedCategory = val),
         ),
       ),
@@ -358,7 +481,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.primaryOrange.withOpacity(0.2)),
+        border: Border.all(
+          color: AppColors.primaryOrange.withValues(alpha: 0.2),
+        ),
       ),
       child: TextFormField(
         controller: controller,
@@ -366,7 +491,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
         style: GoogleFonts.plusJakartaSans(fontSize: 16),
         decoration: InputDecoration(
           hintText: "Ceritakan kepada kami tentang produk ini...",
-          hintStyle: GoogleFonts.plusJakartaSans(color: const Color(0xFF94A3B8)),
+          hintStyle: GoogleFonts.plusJakartaSans(
+            color: const Color(0xFF94A3B8),
+          ),
           border: InputBorder.none,
         ),
       ),
@@ -384,7 +511,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
           borderRadius: BorderRadius.circular(48),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primaryOrange.withOpacity(0.2),
+              color: AppColors.primaryOrange.withValues(alpha: 0.2),
               blurRadius: 15,
               offset: const Offset(0, 10),
             ),

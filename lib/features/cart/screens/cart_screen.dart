@@ -52,7 +52,7 @@ class CartScreen extends StatelessWidget {
 
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
-      backgroundColor: AppColors.bgColor.withOpacity(0.95),
+      backgroundColor: AppColors.bgColor.withValues(alpha: 0.95),
       elevation: 0,
       scrolledUnderElevation: 0,
       leading: IconButton(
