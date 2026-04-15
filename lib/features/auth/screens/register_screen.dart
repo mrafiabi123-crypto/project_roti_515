@@ -1,10 +1,19 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:google_fonts/google_fonts.dart';
+
+// --- IMPORT COMPONENT WIDGETS ---
+import '../widgets/register_header.dart';
+import '../widgets/register_title.dart';
+import '../widgets/register_input_field.dart';
+import '../widgets/register_terms_checkbox.dart';
+import '../widgets/register_button.dart';
+import '../widgets/register_footer.dart';
 
 // --- IMPORT PONDASI ---
-import '../../../core/constants/app_colors.dart';
+import '../../../core/utils/premium_snackbar.dart';
+import '../../../core/network/api_service.dart'; 
+import '../../../routes/app_routes.dart'; 
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -14,7 +23,6 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  // --- LOGIKA TETAP (TIDAK DIUBAH) ---
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -24,144 +32,126 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isObscure = true;
   bool _isAgreed = false; 
 
-  final String _apiUrl = 'http://localhost:8080/api/register';
+  final String _apiUrl = ApiService.register;
 
   Future<void> _register() async {
     if (!_isAgreed) {
-      _showSnackBar("Harap setujui Syarat dan Ketentuan", isError: true);
-      return;
+      PremiumSnackbar.showError(context, "Harap setujui Syarat dan Ketentuan");
+      return; 
     }
 
     setState(() => _isLoading = true);
 
     try {
       final response = await http.post(
-        Uri.parse(_apiUrl),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({
-          "name": _nameController.text,
-          "email": _emailController.text,
-          "phone": _phoneController.text,
-          "password": _passwordController.text,
-          "address": "",
-          "photo_url": "",
+        Uri.parse(_apiUrl), 
+        headers: {"Content-Type": "application/json"}, 
+        body: jsonEncode({ 
+          "name": _nameController.text, 
+          "email": _emailController.text, 
+          "phone": _phoneController.text, 
+          "password": _passwordController.text, 
+          "address": "", 
+          "photo_url": "", 
         }),
       );
 
       final data = jsonDecode(response.body);
 
-      if (response.statusCode == 200 && mounted) {
-        _showSnackBar("Pendaftaran Sukses! Silakan Login.", isError: false);
-        Navigator.pop(context); 
-      } else if (mounted) {
-        _showSnackBar(data['error'] ?? "Pendaftaran Gagal", isError: true);
+      if (!context.mounted) return;
+      final currentContext = context;
+
+      if (response.statusCode == 200) {
+        PremiumSnackbar.showSuccess(currentContext, "Pendaftaran Sukses!");
+        Navigator.pushReplacementNamed(currentContext, AppRoutes.registerSuccess);
+      } else {
+        PremiumSnackbar.showError(currentContext, data['error'] ?? "Pendaftaran Gagal");
       }
     } catch (e) {
-      if (mounted) _showSnackBar("Error koneksi: $e", isError: true);
+      if (!context.mounted) return;
+      final currentContext = context;
+      PremiumSnackbar.showError(currentContext, "Error koneksi: $e");
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  void _showSnackBar(String message, {required bool isError}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message, style: GoogleFonts.plusJakartaSans()),
-        backgroundColor: isError ? AppColors.error : AppColors.success,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F7F6), // Background sesuai HTML
-      body: SingleChildScrollView(
+      backgroundColor: const Color(0xFFF8F7F6), 
+      body: SingleChildScrollView( 
         child: Column(
           children: [
-            // --- 1. HEADER IMAGE DENGAN GRADIENT FADE ---
-            _buildHeaderImage(),
+            const RegisterHeader(),
 
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: Column(
                 children: [
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 20), 
                   
-                  // --- 2. TITLE SECTION ---
-                  Text(
-                    "Buat Akun",
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF1B140D),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    "Daftar untuk memesan kue segar setiap hari dari Roti515.",
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 16,
-                      color: const Color(0xFF9A734C),
-                      height: 1.5,
-                    ),
-                  ),
+                  const RegisterTitle(),
 
                   const SizedBox(height: 32),
 
-                  // --- 3. FORM FIELDS (KAPSUL STYLE) ---
-                  _buildLabel("Nama"),
-                  _buildInputKapsul(
-                    controller: _nameController,
-                    hint: "Masukkan Nama Pengguna",
+                  RegisterInputField(
+                    label: "Nama",
+                    controller: _nameController, 
+                    hint: "Masukkan Nama Pengguna", 
                     icon: Icons.person_outline_rounded,
                   ),
                   
                   const SizedBox(height: 16),
-                  _buildLabel("Email"),
-                  _buildInputKapsul(
-                    controller: _emailController,
+                  RegisterInputField(
+                    label: "Email",
+                    controller: _emailController, 
                     hint: "Sawit123@gmail.com",
                     icon: Icons.mail_outline_rounded,
-                    keyboardType: TextInputType.emailAddress,
+                    keyboardType: TextInputType.emailAddress, 
                   ),
 
                   const SizedBox(height: 16),
-                  _buildLabel("No. Handphone"),
-                  _buildInputKapsul(
-                    controller: _phoneController,
+                  RegisterInputField(
+                    label: "No. Handphone",
+                    controller: _phoneController, 
                     hint: "(62+)8123456789",
                     icon: Icons.phone_android_outlined,
-                    keyboardType: TextInputType.phone,
+                    keyboardType: TextInputType.phone, // Mengubah tipe pop up keyboard menjadi Numpad khusus telp
                   ),
 
                   const SizedBox(height: 16),
-                  _buildLabel("Password"),
-                  _buildInputKapsul(
-                    controller: _passwordController,
+                  RegisterInputField(
+                    label: "Password",
+                    controller: _passwordController, // Menautkan ke input string Password
                     hint: "••••••••",
-                    icon: _isObscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                    isPassword: true,
-                    obscureText: _isObscure,
-                    onSuffixTap: () => setState(() => _isObscure = !_isObscure),
+                    icon: _isObscure ? Icons.visibility_off_outlined : Icons.visibility_outlined, // Ikone mata berubah menyesuaikan flag
+                    isPassword: true, // Flag Khusus password agar bintang-bintang 
+                    obscureText: _isObscure, // Mengaburkan input menjadi bullet point (Terikat ke Stateful nilai true/false)
+                    onSuffixTap: () => setState(() => _isObscure = !_isObscure), // Membalik Boolean dari mata buta(true) menjadi awas(false) atau sebaliknya saat tombol ditekan
                   ),
 
                   const SizedBox(height: 24),
 
                   // --- 4. CHECKBOX TERMS ---
-                  _buildTermsCheckbox(),
+                  RegisterTermsCheckbox(
+                    isAgreed: _isAgreed, // Param yg menghubungkan ke UI dengan status aktif sekarang
+                    onChanged: (val) => setState(() => _isAgreed = val ?? false), // Aksi ketika checkBox disentuh
+                  ),
 
                   const SizedBox(height: 32),
 
                   // --- 5. TOMBOL DAFTAR (WITH FIGMA SHADOW) ---
-                  _buildRegisterButton(),
+                  RegisterButton(
+                    isLoading: _isLoading, // Mengubah tombol jadi progress muter jika proses network
+                    isAgreed: _isAgreed, // Mengunci tombol (abu abu dan tak bisa dipencet jika pengguna belum centang s&k)
+                    onPressed: _register, // Trigger menjalankan fungsi asinkron (network memanggil Backend Golang)
+                  ),
 
                   const SizedBox(height: 24),
 
-                  // --- 6. FOOTER ---
-                  _buildFooter(),
+                  // --- 6. FOOTER PENGISI DI PALING BAWAH ---
+                  const RegisterFooter(),
                   const SizedBox(height: 40),
                 ],
               ),
@@ -169,165 +159,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ],
         ),
       ),
-    );
-  }
-
-  // --- WIDGET HELPERS UNTUK TAMPILAN ---
-
-  Widget _buildHeaderImage() {
-    return Container(
-      width: double.infinity,
-      height: 220,
-      decoration: const BoxDecoration(
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(48)),
-        image: DecorationImage(
-          image: NetworkImage('https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=1000&auto=format&fit=crop'),
-          fit: BoxFit.cover,
-        ),
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: const BorderRadius.vertical(bottom: Radius.circular(48)),
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.transparent,
-              const Color(0xFFF8F7F6).withOpacity(0.8),
-              const Color(0xFFF8F7F6),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLabel(String text) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Padding(
-        padding: const EdgeInsets.only(left: 8.0, bottom: 8.0),
-        child: Text(
-          text,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: const Color(0xFF1B140D),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInputKapsul({
-    required TextEditingController controller,
-    required String hint,
-    required IconData icon,
-    bool isPassword = false,
-    bool obscureText = false,
-    VoidCallback? onSuffixTap,
-    TextInputType keyboardType = TextInputType.text,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(9999),
-        border: Border.all(color: const Color(0xFFE7DBCF)),
-      ),
-      child: TextField(
-        controller: controller,
-        obscureText: obscureText,
-        keyboardType: keyboardType,
-        style: GoogleFonts.plusJakartaSans(fontSize: 16, color: const Color(0xFF1B140D)),
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: GoogleFonts.plusJakartaSans(color: const Color(0xFF9CA3AF), fontSize: 16),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-          border: InputBorder.none,
-          suffixIcon: GestureDetector(
-            onTap: onSuffixTap,
-            child: Icon(icon, color: const Color(0xFF9A734C), size: 20),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRegisterButton() {
-    return Container(
-      width: double.infinity,
-      height: 56,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(9999),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFD47311).withOpacity(0.20),
-            blurRadius: 15,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: ElevatedButton(
-        onPressed: (_isLoading || !_isAgreed) ? null : _register,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFFD47311),
-          disabledBackgroundColor: const Color(0xFFD47311).withOpacity(0.5),
-          shape: const StadiumBorder(),
-          elevation: 0,
-        ),
-        child: _isLoading 
-          ? const CircularProgressIndicator(color: Colors.white)
-          : Text(
-              "Daftar",
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-      ),
-    );
-  }
-
-  Widget _buildTermsCheckbox() {
-    return Row(
-      children: [
-        Checkbox(
-          value: _isAgreed,
-          activeColor: const Color(0xFFD47311),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-          onChanged: (val) => setState(() => _isAgreed = val ?? false),
-        ),
-        Expanded(
-          child: Text(
-            "Saya setuju dengan Syarat & Ketentuan Roti515",
-            style: GoogleFonts.plusJakartaSans(fontSize: 13, color: const Color(0xFF9A734C)),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildFooter() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          "Sudah Punya Akun? ",
-          style: GoogleFonts.plusJakartaSans(fontSize: 14, color: const Color(0xFF9A734C)),
-        ),
-        GestureDetector(
-          onTap: () => Navigator.pop(context),
-          child: Text(
-            "Masuk",
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: const Color(0xFFD47311),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

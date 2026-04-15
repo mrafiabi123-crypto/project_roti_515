@@ -1,14 +1,20 @@
-import 'dart:convert';
-import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:provider/provider.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'dart:convert'; // Untuk melakukan encoding/decoding JSON saat mengirim data ke API
+import 'package:flutter/material.dart'; // Library utama Flutter untuk membangun antarmuka pengguna (UI)
+import 'package:http/http.dart' as http; // Digunakan untuk melakukan HTTP request (GET, POST, dll) ke backend
+import 'package:provider/provider.dart'; // Digunakan untuk state management, menghubungkan UI dengan provider
+import 'package:google_fonts/google_fonts.dart'; // Library untuk menggunakan font Google secara langsung
 
+// Mengimpor konstanta warna yang digunakan dalam aplikasi
 import '../../../core/constants/app_colors.dart';
+import '../../../core/utils/premium_snackbar.dart';
+// Mengimpor daftar rute untuk navigasi antar halaman
 import '../../../routes/app_routes.dart';
+// Mengimpor file ApiService yang menyimpan alamat endpoint backend
+import '../../../core/network/api_service.dart';
+// Mengimpor AuthProvider untuk mengelola token dan sesi pengguna setelah login
 import '../providers/auth_provider.dart';
+
+// Mengimpor komponen-komponen UI modular khusus untuk halaman login
 import '../widgets/login_back_button.dart';
 import '../widgets/login_logo.dart';
 import '../widgets/login_tab_selector.dart';
@@ -18,6 +24,7 @@ import '../widgets/login_divider.dart';
 import '../widgets/login_google_button.dart';
 import '../widgets/login_footer.dart';
 
+// Kelas utama untuk Halaman Login. Menggunakan StatefulWidget karena halamannya interaktif dan state-nya bisa berubah.
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -25,117 +32,133 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
+// State dari LoginScreen, menggunakan SingleTickerProviderStateMixin agar bisa menggunakan kontroler animasi seperti TabController
 class _LoginScreenState extends State<LoginScreen>
     with SingleTickerProviderStateMixin {
+      
+  // Controller untuk menangkap dan membaca teks yang diketik di kolom input Email
   final TextEditingController _emailController = TextEditingController();
+  // Controller untuk menangkap teks di kolom input Password
   final TextEditingController _passwordController = TextEditingController();
+  // Controller untuk mengelola tab "User" dan "Admin"
   late TabController _tabController;
 
+  // Variabel penanda (flag) apakah proses loading sedang berjalan
   bool _isLoading = false;
+  // Variabel untuk menyembunyikan atau menampilkan password (true = sembunyi)
   bool _isObscure = true;
 
-  // URL API dinamis sesuai platform
-  String get _apiUrl {
-    const String port = '8080';
-    if (kIsWeb) {
-      return 'http://localhost:$port/api/login';
-    } else if (Platform.isAndroid) {
-      return 'http://10.0.2.2:$port/api/login';
-    } else {
-      return 'http://localhost:$port/api/login';
-    }
-  }
+  // Getter singkat untuk mengambil URL endpoint login dari ApiService terpusat
+  String get _apiUrl => ApiService.login;
 
   @override
   void initState() {
     super.initState();
+    // Menginisialisasi TabController dengan 2 tab ("User" dan "Admin")
     _tabController = TabController(length: 2, vsync: this);
+    // Menambahkan listener untuk membangun ulang layar saat perpindahan tab terjadi
     _tabController.addListener(() => setState(() {}));
   }
 
   @override
   void dispose() {
+    // Mematikan controller untuk membersihkan memory saat halaman ditutup (mencegah memory leak)
     _emailController.dispose();
     _passwordController.dispose();
     _tabController.dispose();
     super.dispose();
   }
 
+  // Fungsi asinkron yang dieksekusi saat tombol Login ditekan
   Future<void> _login() async {
+    // Validasi sederhana: hentikan jika email atau password kosong
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
-      _showSnackBar("Email dan Password wajib diisi", isError: true);
+      PremiumSnackbar.showError(context, "Email dan Password wajib diisi");
       return;
     }
 
+    // Mengubah statur loading menjadi true agar tombol berubah jadi ikon berputar
     setState(() => _isLoading = true);
 
     try {
+      // Mengirimkan permintaan HTTP POST ke backend
       final response = await http.post(
-        Uri.parse(_apiUrl),
-        headers: {"Content-Type": "application/json"},
+        Uri.parse(_apiUrl), // URL API dari konfigurasi network
+        headers: {"Content-Type": "application/json"}, // Tipe konten berupa JSON
         body: jsonEncode({
-          "email": _emailController.text.trim(),
-          "password": _passwordController.text,
+          "email": _emailController.text.trim(), // Data email, hapus spasi berlebih
+          "password": _passwordController.text, // Data password
         }),
-      ).timeout(const Duration(seconds: 10));
+      ).timeout(const Duration(seconds: 10)); // Diberi batas waktu 10 detik
 
+      // Mengurai string JSON dari server menjadi objek (Map) Dart
       final data = jsonDecode(response.body);
 
+      // Jika balasan statusnya 200 (OK/Sukses), serta widget masih terpasang (mounted)
       if (response.statusCode == 200 && mounted) {
+        // Ambil token dan data user dari JSON JSON respon
         final String token = data['token'];
         final String userRole = data['user']['role'];
         final String userName = data['user']['name'];
 
-        Provider.of<AuthProvider>(context, listen: false).login(token);
-        _showSnackBar("Selamat datang, $userName!", isError: false);
+        // Simpan token ke state AuthProvider menggunakan Provider
+        Provider.of<AuthProvider>(context, listen: false).login(
+          token,
+          role: userRole,
+          name: userName,
+        );
+        
+        // Tampilkan pesan suskes login
+        PremiumSnackbar.showSuccess(context, "Selamat datang, $userName!");
 
+        // Jika user adalah admin, navigasikan ke Dashboard Admin
         if (userRole == 'admin') {
           Navigator.pushNamedAndRemoveUntil(
-              context, AppRoutes.adminDashboard, (route) => false);
+              context, AppRoutes.loginSuccess, (route) => false, arguments: {'isAdmin': true});
         } else {
+          // Jika bukan admin, masuk ke halaman Menu Utama Aplikasi
           Navigator.pushNamedAndRemoveUntil(
-              context, AppRoutes.mainNav, (route) => false);
+              context, AppRoutes.loginSuccess, (route) => false, arguments: {'isAdmin': false});
         }
       } else if (mounted) {
-        _showSnackBar(data['error'] ?? "Gagal login", isError: true);
+        // Tampilkan pesan error jika status code bukan 200 (misalnya salah password)
+        PremiumSnackbar.showError(context, data['error'] ?? "Gagal login");
       }
     } catch (e) {
+      // Cek apakah terjadi error lainnya (misal error koneksi internet)
       if (mounted) {
-        _showSnackBar("Gagal terhubung ke server. Cek koneksi.", isError: true);
+        PremiumSnackbar.showError(context, "Gagal terhubung ke server. Cek koneksi.");
       }
     } finally {
+      // Pastikan status loading dikembalikan ke false di akhir try/catch
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  void _showSnackBar(String message, {required bool isError}) {
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message, style: GoogleFonts.plusJakartaSans()),
-        backgroundColor: isError ? AppColors.error : AppColors.success,
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(20),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    // Scaffold merepresentasikan kerangka layar dasar dari desain material Flutter
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F7F6),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-          child: Column(
+      backgroundColor: const Color(0xFFF8F7F6), // Set warna latar layar
+      body: SafeArea( // SafeArea menjaga agar widget tidak tertutup oleh poni/status bar layar HP
+        child: SingleChildScrollView( // Agar seluruh isi halaman bisa di-scroll ke bawah saat keyboard muncul
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0), // Jarak di kanan kiri
+          child: Column( // Menata semua widget secara berurut ke bawah (vertikal)
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const LoginBackButton(),
-              const SizedBox(height: 16),
+              // Menampilkan tombol Back jika kita sedang tidak di halaman terdalam (root)
+              if (Navigator.canPop(context)) const LoginBackButton(),
+              if (Navigator.canPop(context)) const SizedBox(height: 16),
+
+              // Widget Kustom Logo Login Aplikasi
               const LoginLogo(),
               const SizedBox(height: 32),
+              
+              // Menampilkan Pilihan Tab (User / Admin)
               LoginTabSelector(controller: _tabController),
               const SizedBox(height: 32),
+              
+              // Widget kustom Input TextField untuk Email
               LoginInputField(
                 controller: _emailController,
                 label: "Email",
@@ -143,21 +166,23 @@ class _LoginScreenState extends State<LoginScreen>
                 icon: Icons.mail_outline_rounded,
               ),
               const SizedBox(height: 20),
+              
+              // Widget kustom Input TextField untuk Kata Sandi (Password)
               LoginInputField(
                 controller: _passwordController,
                 label: "Password",
                 hint: "Masukkan Password",
                 icon: Icons.lock_outline_rounded,
-                isPassword: true,
-                obscureText: _isObscure,
-                onSuffixTap: () => setState(() => _isObscure = !_isObscure),
+                isPassword: true, // Menandakan bahwa textfield ini bertindak sebagai tempat password (termasuk menutupi teks)
+                obscureText: _isObscure, // Status bool teks terlihat/sembunyi
+                onSuffixTap: () => setState(() => _isObscure = !_isObscure), // SetState membalikkan visibilitas
               ),
 
-              // --- LUPA PASSWORD ---
+              // Bagian Lupa Password yang diletakkan rata kanan (centerRight)
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
-                  onPressed: () {},
+                  onPressed: () => Navigator.pushNamed(context, AppRoutes.forgotPassword),
                   child: Text(
                     "Lupa Password?",
                     style: GoogleFonts.plusJakartaSans(
@@ -170,18 +195,20 @@ class _LoginScreenState extends State<LoginScreen>
               ),
               const SizedBox(height: 16),
 
+              // Tombol Login Kustom yang menyematkan status memuat (loading) dan trigger fungsi _login
               LoginButton(isLoading: _isLoading, onPressed: _login),
               const SizedBox(height: 32),
 
-              // Fitur daftar & sosial login hanya untuk tab User
+              // Jika saat ini tab aktif adalah ke-0 (Tab User), tampilkan tombol masuk alternatif (Google/Daftar)
               if (_tabController.index == 0) ...[
-                const LoginDivider(),
+                const LoginDivider(), // Widget pemisah ("Atau Masuk Dengan")
                 const SizedBox(height: 24),
-                const LoginGoogleButton(),
+                const LoginGoogleButton(), // Tombol Login Google
                 const SizedBox(height: 32),
-                const LoginFooter(),
+                const LoginFooter(), // Widget tulisan "Belum punya akun? Daftar"
               ],
-              const SizedBox(height: 40),
+              
+              const SizedBox(height: 40), // Jarak terluar agar isi tidak mepet di akhir guliran layar
             ],
           ),
         ),
