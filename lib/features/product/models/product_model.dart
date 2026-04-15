@@ -1,3 +1,5 @@
+import '../../../core/network/api_service.dart';
+
 class ProductModel {
   final int id;
   final String name;
@@ -7,6 +9,7 @@ class ProductModel {
   final double rating;
   final String category;
   final bool isBestseller;
+  final int stock;
 
   ProductModel({
     required this.id,
@@ -17,6 +20,7 @@ class ProductModel {
     required this.rating,
     required this.category,
     required this.isBestseller,
+    required this.stock,
   });
 
   // Fungsi sakti untuk mengubah JSON dari Golang menjadi Object Flutter
@@ -30,7 +34,7 @@ class ProductModel {
       price: json['price'] ?? 0, 
       
       // Sesuaikan key dengan snake_case dari JSON Golang
-      imageUrl: json['image_url'] ?? '', 
+      imageUrl: ApiService.getDisplayImage(json['image_url']), 
       
       // Handle rating agar selalu jadi double meskipun API kirim int
       rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
@@ -39,6 +43,7 @@ class ProductModel {
       
       // Field baru sesuai database MySQL
       isBestseller: json['is_bestseller'] ?? false,
+      stock: json['stock'] ?? 0,
     );
   }
 }

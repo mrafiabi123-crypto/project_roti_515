@@ -2,68 +2,71 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-import '../models/product_model.dart'; 
+import '../models/product_model.dart';
+import '../../../core/network/api_service.dart';
 
+/// Provider untuk mengelola state data Produk/Katalog.
 class ProductProvider extends ChangeNotifier {
+  // State variables
   List<ProductModel> _products = [];
   bool _isLoading = false;
   String _errorMessage = '';
-  String _selectedCategory = 'All'; 
-  String _searchQuery = ''; 
+  String _selectedCategory = 'All';
+  String _searchQuery = '';
 
-  // Getters
+  // Getters untuk diakses oleh UI
   List<ProductModel> get products => _products;
   bool get isLoading => _isLoading;
   String get errorMessage => _errorMessage;
   String get selectedCategory => _selectedCategory;
 
-  // Filter local untuk UI Home
-  List<ProductModel> get bestsellers => 
+  /// Memfilter produk unggulan (Bestseller)
+  List<ProductModel> get bestsellers =>
       _products.where((p) => p.isBestseller == true).toList();
 
-  List<ProductModel> get newMenus => 
+  /// Memfilter produk menu baru (Non-Bestseller)
+  List<ProductModel> get newMenus =>
       _products.where((p) => p.isBestseller == false).toList();
 
-  // ✅ Menggunakan 127.0.0.1 (Lebih stabil untuk local development)
-  final String _baseUrl = 'http://127.0.0.1:8080/api/foods';
-  final String _staticUrl = 'http://127.0.0.1:8080/static/';
+  // Endpoint konfigurasi dari ApiService terpusat
+  final String _baseUrl = ApiService.foods;
+  final String _staticUrl = ApiService.staticFiles;
 
+  /// Mengambil data produk dari backend REST API dengan opsi pencarian/filter.
   Future<void> fetchProducts({String? query}) async {
     _isLoading = true;
     _errorMessage = '';
-    
+
     if (query != null) {
       _searchQuery = query;
     }
-    
-    // Jangan notifyListeners di awal initState untuk menghindari 'build marked as needing to settle'
-    // notifyListeners(); 
 
     try {
+      // Menyusun parameter query untuk URL (opsional: category & search)
       final Map<String, String> queryParameters = {};
-      
+
       if (_selectedCategory != 'All') {
         queryParameters['category'] = _selectedCategory;
       }
-      
+
       if (_searchQuery.isNotEmpty) {
         queryParameters['search'] = _searchQuery;
       }
 
       final uri = Uri.parse(_baseUrl).replace(queryParameters: queryParameters);
-      debugPrint("📡 Memulai Fetching: $uri");
+      debugPrint("📡 Memeriksa API: $uri");
 
-      // Set timeout 10 detik agar tidak blank selamanya jika server hang
+      // Modifikasi timeout 10 detik untuk mencegah aplikasi menggantung (hang)
       final response = await http.get(uri).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> decodedData = jsonDecode(response.body);
-        
-        // ✅ KRUSIAL: Ambil list dari key 'data' sesuai format main.go
+
+        // Ekstraksi array JSON dari prop 'data' sesuai format standar response backend
         final List<dynamic> listData = decodedData['data'] ?? [];
-        
+
         _products = listData.map((json) {
-          // Mapping URL Gambar agar mengarah ke folder static backend
+          // Menyesuaikan path gambar relatif dari database menjadi absolute URL static files
           String fileName = json['image_url'] ?? '';
           if (fileName.isNotEmpty && !fileName.startsWith('http')) {
             json['image_url'] = '$_staticUrl$fileName';
@@ -73,25 +76,30 @@ class ProductProvider extends ChangeNotifier {
 
         debugPrint("✅ Berhasil memuat ${_products.length} produk.");
       } else {
-        _errorMessage = "Gagal memuat data (Status: ${response.statusCode})";
+        // Penanganan jika server mengembalikan HTTP Error (misal 500 / 404)
+        _errorMessage = "Gagal memuat data (Status HTTP: ${response.statusCode})";
         debugPrint("❌ Server Error: ${response.body}");
       }
     } catch (e) {
-      _errorMessage = "Koneksi ke server gagal. Pastikan Backend Golang sudah jalan.";
-      debugPrint("❌ Provider Crash: $e");
+      // Penanganan error network / putus koneksi
+      _errorMessage = "Koneksi ke server gagal. Periksa koneksi backend.";
+      debugPrint("❌ Provider Error: $e");
     } finally {
+      // Menghentikan state loading dan meminta UI untuk merender ulang perubahan state
       _isLoading = false;
       notifyListeners();
     }
   }
 
+  /// Memperbarui kategori produk yang sedang aktif dan menjalankan ulang request API.
   void setCategory(String category) {
-    if (_selectedCategory == category) return; 
+    if (_selectedCategory == category) return;
     _selectedCategory = category;
-    notifyListeners(); 
-    fetchProducts(); 
+    notifyListeners();
+    fetchProducts();
   }
 
+  /// Membersihkan seluruh filter pencarian & kategori ke posisi awal.
   void clearFilters() {
     _selectedCategory = 'All';
     _searchQuery = '';

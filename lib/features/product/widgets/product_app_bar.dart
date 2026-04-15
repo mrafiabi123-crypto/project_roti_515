@@ -5,7 +5,9 @@ import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../cart/providers/cart_provider.dart';
-import '../../cart/screens/cart_screen.dart';
+import '../../cart/widgets/animated_cart_icon.dart';
+import '../../notification/widgets/notification_icon_badge.dart';
+import 'cart_fly_animation.dart';
 
 class ProductAppBar extends StatefulWidget {
   final void Function(String query) onSearchChanged;
@@ -55,7 +57,17 @@ class _ProductAppBarState extends State<ProductAppBar> {
                     color: AppColors.textBrown,
                   ),
                 ),
-                _ProductCartIcon(cart: cart),
+                // ── Animasi 2: Badge pop dengan AnimatedSwitcher ──
+                Row(
+                  children: [
+                    const NotificationIconBadge(),
+                    const SizedBox(width: 12),
+                    AnimatedCartIcon(
+                      cart: cart,
+                      iconKey: CartFlyAnimation.cartIconKey,
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -64,59 +76,6 @@ class _ProductAppBarState extends State<ProductAppBar> {
             controller: _searchController,
             onChanged: _onChanged,
           ),
-        ],
-      ),
-    );
-  }
-}
-
-// ----- Cart Icon -----
-
-class _ProductCartIcon extends StatelessWidget {
-  final CartProvider cart;
-  const _ProductCartIcon({required this.cart});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const CartScreen()),
-      ),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              shape: BoxShape.circle,
-              border: Border.all(color: AppColors.divider),
-            ),
-            child: const Icon(Icons.shopping_cart_outlined,
-                color: AppColors.textBrown, size: 22),
-          ),
-          if (cart.totalItems > 0)
-            Positioned(
-              right: -2,
-              top: -2,
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(
-                    color: AppColors.primaryOrange, shape: BoxShape.circle),
-                constraints:
-                    const BoxConstraints(minWidth: 16, minHeight: 16),
-                child: Text(
-                  '${cart.totalItems}',
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
         ],
       ),
     );
@@ -145,14 +104,14 @@ class _ProductSearchBar extends StatelessWidget {
         border: Border.all(color: AppColors.divider),
         boxShadow: [
           BoxShadow(
-              color: AppColors.textDark.withOpacity(0.02), blurRadius: 5)
+              color: AppColors.textDark.withValues(alpha: 0.02), blurRadius: 5)
         ],
       ),
       child: Row(
         children: [
           const SizedBox(width: 16),
           Icon(Icons.search,
-              color: AppColors.primaryOrange.withOpacity(0.7), size: 18),
+              color: AppColors.primaryOrange.withValues(alpha: 0.7), size: 18),
           const SizedBox(width: 12),
           Expanded(
             child: TextField(

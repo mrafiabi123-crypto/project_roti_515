@@ -7,10 +7,12 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/price_formatter.dart';
 import '../../../cart/providers/cart_provider.dart';
 import '../../models/product_model.dart';
+import '../../../../core/utils/premium_snackbar.dart';
 
 /// Sticky bottom bar di halaman detail produk.
 /// Menampilkan tombol "Masukkan Keranjang" + total harga.
-class DetailBottomBar extends StatelessWidget {
+/// Animasi 3: squircle morph + ripple effect saat tombol ditekan.
+class DetailBottomBar extends StatefulWidget {
   final ProductModel product;
   final int quantity;
 
@@ -21,8 +23,70 @@ class DetailBottomBar extends StatelessWidget {
   });
 
   @override
+  State<DetailBottomBar> createState() => _DetailBottomBarState();
+}
+
+class _DetailBottomBarState extends State<DetailBottomBar>
+    with SingleTickerProviderStateMixin {
+  bool _isPressed = false;
+
+  // Controller untuk efek ripple (pulse) pada tombol
+  late final AnimationController _pulseCtrl;
+  late final Animation<double> _pulseScale;
+  late final Animation<double> _pulseOpacity;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+
+    _pulseScale = Tween<double>(begin: 1.0, end: 1.18)
+        .chain(CurveTween(curve: Curves.easeOut))
+        .animate(_pulseCtrl);
+
+    _pulseOpacity = Tween<double>(begin: 0.4, end: 0.0)
+        .chain(CurveTween(curve: Curves.easeIn))
+        .animate(_pulseCtrl);
+  }
+
+  @override
+  void dispose() {
+    _pulseCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleAddToCart(BuildContext context) async {
+    // Animasi squircle: tombol sedikit mengecil saat ditekan
+    setState(() => _isPressed = true);
+    // Trigger pulse/ripple
+    _pulseCtrl.forward(from: 0);
+
+    await Future.delayed(const Duration(milliseconds: 100));
+    setState(() => _isPressed = false);
+
+    if (!context.mounted) return;
+
+    if (widget.product.stock <= 0) return;
+    
+    final cart = Provider.of<CartProvider>(context, listen: false);
+    for (int i = 0; i < widget.quantity; i++) {
+      cart.addToCart(widget.product);
+    }
+
+    if (!context.mounted) return;
+
+    PremiumSnackbar.showSuccess(context, "Pesanan masuk ke keranjang");
+    
+    if (context.mounted) Navigator.pop(context);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final int totalPrice = (product.price * quantity).toInt();
+    final int totalPrice =
+        (widget.product.price * widget.quantity).toInt();
 
     return ClipRRect(
       child: BackdropFilter(
@@ -30,123 +94,84 @@ class DetailBottomBar extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: AppColors.white.withOpacity(0.9),
+            color: AppColors.white.withValues(alpha: 0.9),
             border: const Border(top: BorderSide(color: AppColors.divider)),
           ),
           child: GestureDetector(
-            onTap: () {
-              final cart =
-                  Provider.of<CartProvider>(context, listen: false);
-              for (int i = 0; i < quantity; i++) {
-                cart.addToCart(product);
-              }
-
-              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  elevation: 0,
-                  behavior: SnackBarBehavior.floating,
-                  backgroundColor: Colors.transparent,
-                  duration: const Duration(milliseconds: 1500),
-                  margin: const EdgeInsets.only(
-                      bottom: 20, left: 20, right: 20),
-                  content: TweenAnimationBuilder<double>(
-                    duration: const Duration(milliseconds: 500),
-                    curve: Curves.easeOutBack,
-                    tween: Tween<double>(begin: 0.5, end: 1.0),
-                    builder: (context, scale, child) =>
-                        Transform.scale(scale: scale, child: child),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: AppColors.white,
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(
-                            color: AppColors.primaryOrange, width: 1.5),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primaryOrange.withOpacity(0.2),
-                            blurRadius: 15,
-                            offset: const Offset(0, 8),
-                          )
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: const BoxDecoration(
-                                color: AppColors.success,
-                                shape: BoxShape.circle),
-                            child: const Icon(Icons.check_rounded,
-                                color: AppColors.white, size: 20),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  "Berhasil Ditambahkan!",
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                    color: AppColors.primaryOrange,
-                                  ),
-                                ),
-                                Text(
-                                  "$quantity x ${product.name} masuk ke keranjang.",
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 12,
-                                    color: AppColors.textBrown,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+            onTapDown: (_) => setState(() => _isPressed = true),
+            onTapCancel: () => setState(() => _isPressed = false),
+            onTap: widget.product.stock > 0 ? () => _handleAddToCart(context) : null,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                // ── Lapisan pulse/ripple ──────────────────────────────────
+                AnimatedBuilder(
+                  animation: _pulseCtrl,
+                  builder: (context, child) => Transform.scale(
+                    scale: _pulseScale.value,
+                    child: Opacity(
+                      opacity: _pulseOpacity.value,
+                      child: Container(
+                        height: 56,
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryOrange,
+                          borderRadius: BorderRadius.circular(40),
+                        ),
                       ),
                     ),
                   ),
                 ),
-              );
 
-              Navigator.pop(context);
-            },
-            child: Container(
-              height: 56,
-              decoration: BoxDecoration(
-                color: AppColors.primaryOrange,
-                borderRadius: BorderRadius.circular(40),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primaryOrange.withOpacity(0.3),
-                    blurRadius: 15,
-                    offset: const Offset(0, 10),
-                  )
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.shopping_bag_outlined,
-                      color: AppColors.white, size: 20),
-                  const SizedBox(width: 12),
-                  Text(
-                    "Masukkan Keranjang  Rp ${formatRupiah(totalPrice)}",
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.white,
-                    ),
+                // ── Tombol utama dengan squircle morph ────────────────────
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 120),
+                  curve: Curves.easeInOut,
+                  height: _isPressed ? 50 : 56,
+                  decoration: BoxDecoration(
+                    color: widget.product.stock == 0
+                        ? AppColors.textHint.withValues(alpha: 0.3)
+                        : _isPressed
+                            ? AppColors.primaryOrange.withValues(alpha: 0.88)
+                            : AppColors.primaryOrange,
+                    // Border radius mengecil saat ditekan (squircle effect)
+                    borderRadius:
+                        BorderRadius.circular(_isPressed ? 24 : 40),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primaryOrange
+                            .withValues(alpha: _isPressed ? 0.15 : 0.3),
+                        blurRadius: _isPressed ? 6 : 15,
+                        offset: Offset(0, _isPressed ? 4 : 10),
+                      )
+                    ],
                   ),
-                ],
-              ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 200),
+                        child: Icon(
+                          _isPressed
+                              ? Icons.shopping_bag_rounded
+                              : Icons.shopping_bag_outlined,
+                          key: ValueKey(_isPressed),
+                          color: AppColors.white,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        widget.product.stock == 0 ? "Stok Telah Habis" : "Masukkan Keranjang  Rp ${formatRupiah(totalPrice)}",
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: widget.product.stock == 0 ? AppColors.textHint : AppColors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         ),

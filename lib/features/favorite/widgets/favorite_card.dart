@@ -6,11 +6,16 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/price_formatter.dart';
 import '../../cart/providers/cart_provider.dart';
 import '../../product/models/product_model.dart';
+import '../../../core/utils/premium_snackbar.dart';
 import '../providers/favorite_provider.dart';
 
 class FavoriteCard extends StatelessWidget {
   final ProductModel product;
   const FavoriteCard({super.key, required this.product});
+
+  void _showAddedSnackBar(BuildContext context, String name) {
+    PremiumSnackbar.showSuccess(context, "$name ditambahkan!");
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +29,7 @@ class FavoriteCard extends StatelessWidget {
         border: Border.all(color: AppColors.divider),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -35,16 +40,19 @@ class FavoriteCard extends StatelessWidget {
         children: [
           // --- Product Image ---
           Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(13),
             child: Stack(
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(32),
-                  child: Image.network(
-                    product.imageUrl,
-                    height: 140,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
+                  child: Hero(
+                    tag: 'product-image-${product.id}',
+                    child: Image.network(
+                      product.imageUrl,
+                      height: 150,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
                 // Remove from favorites button
@@ -57,7 +65,7 @@ class FavoriteCard extends StatelessWidget {
                       width: 28,
                       height: 28,
                       decoration: BoxDecoration(
-                        color: AppColors.white.withOpacity(0.9),
+                        color: AppColors.white.withValues(alpha: 0.9),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -80,79 +88,61 @@ class FavoriteCard extends StatelessWidget {
               children: [
                 Text(
                   product.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.plusJakartaSans(
                     fontWeight: FontWeight.bold,
                     fontSize: 15,
                     color: AppColors.textDark,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 4),
                 Text(
                   product.description,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.pontanoSans(
-                    fontSize: 11,
+                    fontSize: 12,
                     color: AppColors.textGrey,
                     fontWeight: FontWeight.w500,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ],
-            ),
-          ),
-
-          const Spacer(),
-
-          // --- Price & Add to Cart ---
-          Padding(
-            padding: const EdgeInsets.all(14),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Rp ${formatRupiah(product.price)}",
-                  style: GoogleFonts.plusJakartaSans(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: AppColors.textDark,
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    cartProvider.addToCart(product);
-                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          "${product.name} ditambah!",
-                          style: GoogleFonts.plusJakartaSans(
-                            color: AppColors.white,
-                          ),
-                        ),
-                        duration: const Duration(milliseconds: 500),
-                        backgroundColor: AppColors.success,
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Rp ${formatRupiah(product.price)}",
+                      style: GoogleFonts.plusJakartaSans(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        color: AppColors.textDark,
                       ),
-                    );
-                  },
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: const BoxDecoration(
-                      color: AppColors.textDark,
-                      shape: BoxShape.circle,
                     ),
-                    child: const Icon(
-                      Icons.add_rounded,
-                      color: AppColors.white,
-                      size: 16,
+                    GestureDetector(
+                      onTap: () {
+                        cartProvider.addToCart(product);
+                        _showAddedSnackBar(context, product.name);
+                      },
+                      child: Container(
+                        width: 32,
+                        height: 32,
+                        decoration: const BoxDecoration(
+                          color: AppColors.textDark,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.add_rounded,
+                          color: AppColors.white,
+                          size: 16,
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ],
             ),
           ),
+          const SizedBox(height: 16),
         ],
       ),
     );
