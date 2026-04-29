@@ -16,12 +16,12 @@ class FavoriteGrid extends StatelessWidget {
         final favorites = favProvider.favorites;
 
         if (favorites.isEmpty) {
-          return const FavoriteEmptyState();
+          return FavoriteEmptyState();
         }
 
         return GridView.builder(
-          padding: const EdgeInsets.fromLTRB(20, 120, 20, 100),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          padding: EdgeInsets.fromLTRB(20, 120, 20, 100),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
             mainAxisExtent: 280,
             crossAxisSpacing: 15,

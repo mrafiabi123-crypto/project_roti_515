@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../core/constants/app_colors.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../home/screens/home_screen.dart';
 import '../../product/screens/product_screen.dart'; 
 import '../../favorite/screens/favorite_screen.dart'; 
 import '../../auth/screens/login_screen.dart'; 
 import '../../profile/screens/profile_screen.dart'; 
-import '../widgets/main_bottom_nav_bar.dart'; // Import widget komponen modular navigasi
+import '../widgets/main_bottom_nav_bar.dart';
+import 'package:roti_515/core/theme/app_theme.dart'; // Import widget komponen modular navigasi
 
 /// Layar induk yang memuat kerangka navigasi utama aplikasi (Bottom Navigation).
 class MainNavScreen extends StatefulWidget {
@@ -29,27 +29,31 @@ class _MainNavScreenState extends State<MainNavScreen> {
 
     switch (_selectedIndex) {
       case 0: 
-        return const HomeScreen(); // Layar Beranda
+        return HomeScreen(
+          onGoToProduct: () => setState(() => _selectedIndex = 1),
+        ); // Layar Beranda
       case 1: 
-        return const ProductScreen(); // Layar Katalog Produk
+        return ProductScreen(); // Layar Katalog Produk
       case 2: 
-        return const FavoriteScreen(); // Layar Favorit
+        return FavoriteScreen(); // Layar Favorit
       case 3: 
         // Logika Middleware Proteksi: Redirect ke Login bila belum memiliki sesi/token, jika sudah masuk Profil.
-        return isLoggedIn ? const ProfilePage() : const LoginScreen();
+        return isLoggedIn ? ProfilePage() : LoginScreen();
       default: 
-        return const HomeScreen(); // Fallback keamanan
+        return HomeScreen(
+          onGoToProduct: () => setState(() => _selectedIndex = 1),
+        ); // Fallback keamanan
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bgColor,
+      backgroundColor: context.colors.bgColor,
       
       // Isi layar secara otomatis berganti komponen sesuai hasil buildBody dengan efek memudar
       body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
+        duration: Duration(milliseconds: 300),
         switchInCurve: Curves.easeIn,
         switchOutCurve: Curves.easeOut,
         child: _buildBody(),

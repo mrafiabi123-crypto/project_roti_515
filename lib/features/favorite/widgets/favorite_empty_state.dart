@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:roti_515/core/theme/app_theme.dart';
 
-import '../../../core/constants/app_colors.dart';
 
 class FavoriteEmptyState extends StatelessWidget {
   const FavoriteEmptyState({super.key});
@@ -15,13 +15,13 @@ class FavoriteEmptyState extends StatelessWidget {
           Icon(
             Icons.favorite_border_rounded,
             size: 64,
-            color: AppColors.textGrey.withValues(alpha: 0.3),
+            color: context.colors.textGrey.withValues(alpha: 0.3),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           Text(
             "Belum ada roti favoritmu.",
             style: GoogleFonts.plusJakartaSans(
-              color: AppColors.textGrey,
+              color: context.colors.textGrey,
               fontSize: 14,
             ),
           ),
