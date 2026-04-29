@@ -1,57 +1,67 @@
-/// Sentralisasi konfigurasi layanan API untuk mempermudah manajemen Endpoint.
+/// ApiService: Sentralisasi rute/endpoint API aplikasi.
+/// Digunakan agar kita tidak perlu menulis URL manual di setiap fitur.
 class ApiService {
-  /// Base URL API - Sekarang mengarah ke Production (Railway)
-  /// Kita tidak perlu membedakan platform lagi karena URL ini bisa diakses dari mana saja.
+  /// Alamat dasar server API (Host) yang sedang digunakan.
   static String get baseUrl =>
       'https://food-backend-production-0817.up.railway.app/api';
 
-  /// Base Domain URL (Tanpa sub-route /api) untuk resolusi host.
+  /// Alamat Domain (tanpa rute /api) untuk memanggil resource statis seperti gambar.
   static String get baseDomain =>
       'https://food-backend-production-0817.up.railway.app';
 
-  // --- Daftar Endpoint Rute (REST API) ---
-
-  // Otentikasi
+  // --- DAFTAR ENDPOINT AUTENTIKASI ---
+  // Rute untuk melakukan login (POST)
   static String get login => '$baseUrl/login';
+  // Rute untuk mendaftarkan akun baru (POST)
   static String get register => '$baseUrl/register';
+  // Rute untuk memverifikasi identitas sebelum reset password (POST)
+  static String get forgotPassword => '$baseUrl/forgot-password';
+  // Rute untuk mereset password setelah verifikasi (POST)
+  static String get resetPassword => '$baseUrl/reset-password';
+  // Rute khusus untuk demo login via tombol Google (POST)
+  static String get demoLogin => '$baseUrl/demo-login';
 
-  // Profil User
+  // --- DAFTAR ENDPOINT LAINNYA ---
   static String get profile => '$baseUrl/profile';
-
+  static String get uploadPhoto => '$baseUrl/profile/photo';
   static String get adminStats => '$baseUrl/admin/stats';
   static String get notifications => '$baseUrl/notifications';
-
-  // Katalog Produk/Makanan
   static String get foods => '$baseUrl/foods';
+  static String get orders => '$baseUrl/orders'; 
+  static String get userOrders => '$baseUrl/user/orders';
+  static String get adminOrders => '$baseUrl/admin/orders';
+  
+  // Endpoint dinamis untuk update status pesanan berdasarkan ID
+  static String adminOrderById(int id) => '$baseUrl/admin/orders/$id';
+  static String get adminUsers => '$baseUrl/admin/users';
 
-  // Pembayaran / Pesanan
-  static String get orders => '$baseUrl/orders'; // POST create order (public)
-  static String get userOrders => '$baseUrl/user/orders'; // GET order by user
-  static String get adminOrders =>
-      '$baseUrl/admin/orders'; // GET all orders (admin only)
-  static String adminOrderById(int id) =>
-      '$baseUrl/admin/orders/$id'; // PUT update status (admin only)
-  static String get adminUsers =>
-      '$baseUrl/admin/users'; // GET all users (admin only)
+  // Endpoint untuk user: batalkan, hapus pesanan, dan rating
+  static String cancelOrderById(int id) => '$baseUrl/orders/$id/cancel';
+  static String userOrderById(int id) => '$baseUrl/orders/$id';
+  static String ratingByFoodId(int foodId) => '$baseUrl/foods/$foodId/rating';
 
-  /// Path URL untuk memanggil resource Asset/Statis dari server Backend (contoh: load gambar)
-  /// Contoh: ${ApiService.staticFiles}roti_keju.png
+  // Endpoint notifikasi per item
+  static String notificationById(int id) => '$baseUrl/notifications/$id';
+  static String get deleteAllNotifications => '$baseUrl/notifications/all';
+  static String get deleteAllUserOrders => '$baseUrl/user/orders/all';
+
+  /// Link Folder Statis di Server: Tempat semua gambar di-upload dan disimpan.
   static String get staticFiles => '$baseDomain/static/';
 
-  /// Fungsi sakti untuk membersihkan dan membangun URL gambar yang valid.
-  /// Bisa menangani URL lengkap (http://...) maupun path relatif (/static/...)
+  /// FUNGSI RESOLUSI GAMBAR:
+  /// Menjamin aplikasi mendapatkan URL gambar yang valid terlepas dari format DB.
   static String getDisplayImage(String? path) {
     if (path == null || path.isEmpty) return '';
     
-    // Jika sudah berupa URL lengkap, kembalikan langsung
+    // 1. Jika path sudah berupa URL lengkap (misal link Google), gunakan langsung.
     if (path.startsWith('http')) return path;
 
-    // Jika diawali /static, kita gabungkan dengan baseDomain
+    // 2. Jika path diawali dengan '/static', gabungkan dengan baseDomain server.
     if (path.startsWith('/static')) {
       return '$baseDomain$path';
     }
 
-    // Jika hanya nama file saja, kita arahkan ke folder static/uploads (disesuaikan srv)
+    // 3. Jika hanya nama file (misal: 'roti.png'), tambahkan prefix folder static server.
     final cleaned = path.startsWith('/') ? path : '/$path';
     return '$baseDomain/static$cleaned';
   }
