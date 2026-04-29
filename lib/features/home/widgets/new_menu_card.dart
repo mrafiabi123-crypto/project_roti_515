@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
-import '../../../core/constants/app_colors.dart';
 import '../../cart/providers/cart_provider.dart';
 import '../../../core/utils/page_transitions.dart';
 import '../../../core/utils/price_formatter.dart';
 import '../../product/models/product_model.dart';
 import '../../../core/utils/premium_snackbar.dart';
 import '../../product/screens/product_detail_screen.dart';
+import 'package:roti_515/core/theme/app_theme.dart';
 
 /// Komponen UI berbentuk kartu horizontal untuk daftar "Menu Baru".
 class NewMenuCard extends StatelessWidget {
@@ -22,23 +22,22 @@ class NewMenuCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
+      onTap: () => Navigator.push(context,
         FadePageRoute(
           page: ProductDetailScreen(product: product),
         ),
       ),
       child: Container(
         width: 285,
-        margin: const EdgeInsets.only(right: 16),
-        padding: const EdgeInsets.all(12),
+        margin: EdgeInsets.only(right: 16),
+        padding: EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: context.colors.white,
           borderRadius: BorderRadius.circular(40),
-          border: Border.all(color: AppColors.divider),
+          border: Border.all(color: context.colors.divider),
           boxShadow: [
             BoxShadow(
-                color: AppColors.textDark.withValues(alpha: 0.05), blurRadius: 2)
+                color: context.colors.textDark.withValues(alpha: 0.05), blurRadius: 2)
           ],
         ),
         child: Row(
@@ -56,7 +55,7 @@ class NewMenuCard extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: 12),
             
             // Detail Teks (Nama, Deskripsi, Harga)
             Expanded(
@@ -69,7 +68,7 @@ class NewMenuCard extends StatelessWidget {
                     style: GoogleFonts.plusJakartaSans(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
-                      color: AppColors.textDark,
+                      color: context.colors.textDark,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -78,13 +77,13 @@ class NewMenuCard extends StatelessWidget {
                     product.description,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 12,
-                      color: AppColors.textGrey,
+                      color: context.colors.textGrey,
                       fontWeight: FontWeight.w500,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -93,7 +92,7 @@ class NewMenuCard extends StatelessWidget {
                         style: GoogleFonts.plusJakartaSans(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
-                          color: AppColors.textDark,
+                          color: context.colors.textDark,
                         ),
                       ),
                       // Tombol Tambah Keranjang
@@ -105,10 +104,10 @@ class NewMenuCard extends StatelessWidget {
                         child: Container(
                           width: 28,
                           height: 28,
-                          decoration: const BoxDecoration(
-                              color: AppColors.divider, shape: BoxShape.circle),
-                          child: const Icon(Icons.add_rounded,
-                              size: 16, color: AppColors.textDark),
+                          decoration: BoxDecoration(
+                              color: context.colors.divider, shape: BoxShape.circle),
+                          child: Icon(Icons.add_rounded,
+                              size: 16, color: context.colors.textDark),
                         ),
                       ),
                     ],
