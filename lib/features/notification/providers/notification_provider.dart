@@ -77,4 +77,67 @@ class NotificationProvider with ChangeNotifier {
       }
     }
   }
+
+  /// Hapus satu notifikasi berdasarkan ID.
+  /// Optimistic: langsung hapus dari list lokal, lalu sinkron ke server.
+  Future<void> deleteNotification(int id, String? token) async {
+    // Simpan dulu untuk rollback jika perlu
+    final index = _notifications.indexWhere((n) => n.id == id);
+    if (index == -1) return;
+
+    final removed = _notifications[index];
+    _notifications.removeAt(index);
+    notifyListeners();
+
+    try {
+      if (token != null && token.isNotEmpty) {
+        final response = await http.delete(
+          Uri.parse(ApiService.notificationById(id)),
+          headers: {'Authorization': 'Bearer $token'},
+        );
+        // Jika server gagal, rollback
+        if (response.statusCode != 200 && response.statusCode != 204) {
+          _notifications.insert(index, removed);
+          notifyListeners();
+        }
+      }
+    } catch (e) {
+      // Rollback jika error jaringan
+      _notifications.insert(index, removed);
+      notifyListeners();
+    }
+  }
+
+  /// Hapus seluruh notifikasi milik user.
+  Future<bool> deleteAllNotifications(String? token) async {
+    if (token == null || token.isEmpty) return false;
+
+    // Backup untuk rollback
+    final oldNotifications = List<NotificationModel>.from(_notifications);
+    
+    // Optimistic clear
+    _notifications.clear();
+    notifyListeners();
+
+    try {
+      final response = await http.delete(
+        Uri.parse(ApiService.deleteAllNotifications),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        // Rollback jika gagal
+        _notifications = oldNotifications;
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      // Rollback jika error jaringan
+      _notifications = oldNotifications;
+      notifyListeners();
+      return false;
+    }
+  }
 }

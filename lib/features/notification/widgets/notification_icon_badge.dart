@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/page_transitions.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../providers/notification_provider.dart';
 import '../screens/notification_screen.dart';
+import 'package:roti_515/core/theme/app_theme.dart';
 
 class NotificationIconBadge extends StatefulWidget {
   const NotificationIconBadge({super.key});
@@ -32,9 +32,8 @@ class _NotificationIconBadgeState extends State<NotificationIconBadge> {
 
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          FadePageRoute(page: const NotificationScreen()),
+        Navigator.push(context,
+          FadePageRoute(page: NotificationScreen()),
         );
       },
       child: Stack(
@@ -44,20 +43,20 @@ class _NotificationIconBadgeState extends State<NotificationIconBadge> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppColors.white,
+              color: context.colors.white,
               shape: BoxShape.circle,
-              border: Border.all(color: AppColors.divider),
+              border: Border.all(color: context.colors.divider),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.textDark.withValues(alpha: 0.05),
+                  color: context.colors.textDark.withValues(alpha: 0.05),
                   blurRadius: 10,
-                  offset: const Offset(0, 4),
+                  offset: Offset(0, 4),
                 )
               ],
             ),
             child: Icon(
               Icons.notifications_none_rounded,
-              color: unreadCount > 0 ? AppColors.primaryOrange : AppColors.textDark,
+              color: unreadCount > 0 ? context.colors.primaryOrange : context.colors.textDark,
               size: 22,
             ),
           ),
@@ -66,15 +65,15 @@ class _NotificationIconBadgeState extends State<NotificationIconBadge> {
               right: -2,
               top: -2,
               child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(
-                  color: AppColors.primaryOrange,
+                padding: EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: context.colors.primaryOrange,
                   shape: BoxShape.circle,
                 ),
-                constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                constraints: BoxConstraints(minWidth: 16, minHeight: 16),
                 child: Text(
                   '$unreadCount',
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
