@@ -16,8 +16,8 @@ class FadePageRoute<T> extends PageRouteBuilder<T> {
               child: child,
             );
           },
-          transitionDuration: const Duration(milliseconds: 300),
-          reverseTransitionDuration: const Duration(milliseconds: 300),
+          transitionDuration: Duration(milliseconds: 300),
+          reverseTransitionDuration: Duration(milliseconds: 300),
         );
 }
 
@@ -41,7 +41,7 @@ class ScaleFadePageRoute<T> extends PageRouteBuilder<T> {
               ),
             );
           },
-          transitionDuration: const Duration(milliseconds: 350),
-          reverseTransitionDuration: const Duration(milliseconds: 350),
+          transitionDuration: Duration(milliseconds: 350),
+          reverseTransitionDuration: Duration(milliseconds: 350),
         );
 }

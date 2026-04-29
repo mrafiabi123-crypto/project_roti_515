@@ -27,7 +27,7 @@ class _StaggeredFadeAnimationState extends State<StaggeredFadeAnimation>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 500),
+      duration: Duration(milliseconds: 500),
     );
     
     _fade = Tween<double>(begin: 0.0, end: 1.0).animate(
@@ -35,7 +35,7 @@ class _StaggeredFadeAnimationState extends State<StaggeredFadeAnimation>
     );
     
     // Menambahkan efek slight vertical slide up
-    _slide = Tween<Offset>(begin: const Offset(0.0, 0.05), end: Offset.zero).animate(
+    _slide = Tween<Offset>(begin: Offset(0.0, 0.05), end: Offset.zero).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
     );
 
