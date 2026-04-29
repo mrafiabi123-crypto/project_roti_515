@@ -27,6 +27,8 @@ class AdminProductProvider extends ChangeNotifier {
       list = list.where((p) => (p['stock'] ?? 0) == 0).toList();
     } else if (_selectedTab == 2) {
       list = list.where((p) => (p['stock'] ?? 0) > 0 && (p['stock'] ?? 0) <= 15).toList();
+      // Mengurutkan dari stok terkecil
+      list.sort((a, b) => (a['stock'] ?? 0).compareTo(b['stock'] ?? 0));
     }
     
     return list;
@@ -48,7 +50,7 @@ class AdminProductProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await http.get(Uri.parse(_apiUrl)).timeout(const Duration(seconds: 10));
+      final response = await http.get(Uri.parse(_apiUrl)).timeout(Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -103,7 +105,7 @@ class AdminProductProvider extends ChangeNotifier {
         "category": category,
         "price": price,
         "stock": stock,
-        if (imageUrl != null) "image_url": imageUrl,
+        "image_url": ?imageUrl,
       });
 
       final response = await http.put(

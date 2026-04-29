@@ -6,10 +6,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart'; // ✅ Import image_picker
 
-import '../../../../core/constants/app_colors.dart';
 import '../providers/admin_product_provider.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../../core/utils/premium_snackbar.dart';
+import 'package:roti_515/core/theme/theme_provider.dart';
+import 'package:roti_515/core/theme/app_theme.dart';
 
 class AddProductScreen extends StatefulWidget {
   final Map<String, dynamic>? initialProduct;
@@ -95,8 +96,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => const Center(
-          child: CircularProgressIndicator(color: AppColors.primaryOrange),
+        builder: (context) => Center(
+          child: CircularProgressIndicator(color: context.colors.primaryOrange),
         ),
       );
 
@@ -151,15 +152,15 @@ class _AddProductScreenState extends State<AddProductScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F7F6),
+      backgroundColor: context.colors.bgColor,
       extendBodyBehindAppBar: true,
-      appBar: _buildGlassAppBar(context),
+      appBar: _buildGlassAppBar(),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            const SizedBox(height: kToolbarHeight + 40),
+            SizedBox(height: kToolbarHeight + 40),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: EdgeInsets.symmetric(horizontal: 16),
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -167,18 +168,18 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   children: [
                     _buildSectionLabel("Gambar Produk"),
                     _buildUploadArea(), // ✅ Sekarang memanggil pemilih gambar
-                    const SizedBox(height: 32),
+                    SizedBox(height: 32),
 
                     _buildInputLabel("Nama Produk"),
                     _buildPillTextField(
                       controller: _nameController,
                       hint: "Contoh: Roti Keju",
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
 
                     _buildInputLabel("Category"),
                     _buildPillDropdown(), // ✅ Kategori
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
 
                     Row(
                       children: [
@@ -195,7 +196,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                             ],
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        SizedBox(width: 16),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -211,16 +212,16 @@ class _AddProductScreenState extends State<AddProductScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
 
                     _buildInputLabel("Deskripsi"),
                     _buildDescriptionField(controller: _descController),
-                    const SizedBox(height: 32),
+                    SizedBox(height: 32),
 
                     _buildSaveButton(),
-                    const SizedBox(height: 16),
-                    _buildBackButton(context),
-                    const SizedBox(height: 128),
+                    SizedBox(height: 16),
+                    _buildBackButton(),
+                    SizedBox(height: 128),
                   ],
                 ),
               ),
@@ -235,19 +236,19 @@ class _AddProductScreenState extends State<AddProductScreen> {
   // UI COMPONENTS
   // =========================================================================
 
-  PreferredSizeWidget _buildGlassAppBar(BuildContext context) {
+  PreferredSizeWidget _buildGlassAppBar() {
     return PreferredSize(
-      preferredSize: const Size.fromHeight(72),
+      preferredSize: Size.fromHeight(72),
       child: ClipRRect(
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
           child: AppBar(
-            backgroundColor: const Color(0xFFF8F7F6).withValues(alpha: 0.8),
+            backgroundColor: context.colors.bgColor.withValues(alpha: 0.8),
             elevation: 0,
             automaticallyImplyLeading: false,
             shape: Border(
               bottom: BorderSide(
-                color: AppColors.primaryOrange.withValues(alpha: 0.1),
+                color: context.colors.primaryOrange.withValues(alpha: 0.1),
               ),
             ),
             title: Row(
@@ -258,31 +259,38 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: AppColors.primaryOrange.withValues(alpha: 0.1),
+                      color: context.colors.primaryOrange.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.arrow_back_rounded,
-                      color: AppColors.primaryOrange,
+                      color: context.colors.primaryOrange,
                       size: 20,
                     ),
                   ),
                 ),
                 Expanded(
                   child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 40),
-                      child: Text(
-                        widget.initialProduct != null
-                            ? "Edit Produk"
-                            : "Tambah Produk",
-                        style: GoogleFonts.plusJakartaSans(
-                          color: const Color(0xFF0F172A),
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                        ),
+                    child: Text(
+                      widget.initialProduct != null
+                          ? "Edit Produk"
+                          : "Tambah Produk",
+                      style: GoogleFonts.plusJakartaSans(
+                        color: context.colors.textDark,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
+                  ),
+                ),
+                Consumer<ThemeProvider>(
+                  builder: (context, theme, _) => IconButton(
+                    icon: Icon(
+                      theme.isDarkMode ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+                      color: context.colors.textDark,
+                      size: 20,
+                    ),
+                    onPressed: () => theme.toggleTheme(!theme.isDarkMode),
                   ),
                 ),
               ],
@@ -295,11 +303,11 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   Widget _buildSectionLabel(String text) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: EdgeInsets.only(bottom: 16),
       child: Text(
         text,
         style: GoogleFonts.plusJakartaSans(
-          color: const Color(0xFF64748B),
+          color: context.colors.textGrey,
           fontSize: 14,
         ),
       ),
@@ -308,11 +316,11 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   Widget _buildInputLabel(String text) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: EdgeInsets.only(bottom: 8),
       child: Text(
         text,
         style: GoogleFonts.plusJakartaSans(
-          color: const Color(0xFF0F172A),
+          color: context.colors.textDark,
           fontSize: 14,
           fontWeight: FontWeight.w600,
         ),
@@ -331,10 +339,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
           vertical: _imageFile == null ? 52 : 0,
         ), // Hilangkan padding jika ada gambar
         decoration: BoxDecoration(
-          color: AppColors.primaryOrange.withValues(alpha: 0.05),
+          color: context.colors.primaryOrange.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(48),
           border: Border.all(
-            color: AppColors.primaryOrange.withValues(alpha: 0.3),
+            color: context.colors.primaryOrange.withValues(alpha: 0.3),
             width: 2,
           ),
         ),
@@ -343,26 +351,26 @@ class _AddProductScreenState extends State<AddProductScreen> {
         child: _imageFile == null
             ? Column(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.cloud_upload_outlined,
-                    color: AppColors.primaryOrange,
+                    color: context.colors.primaryOrange,
                     size: 32,
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                   Text(
                     "Unggah Gambar Produk",
                     style: GoogleFonts.plusJakartaSans(
-                      color: AppColors.primaryOrange,
+                      color: context.colors.primaryOrange,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4),
                   Text(
                     "Format yang didukung: JPG, PNG. Ukuran maksimum 2MB",
                     textAlign: TextAlign.center,
                     style: GoogleFonts.plusJakartaSans(
-                      color: const Color(0xFF94A3B8),
+                      color: context.colors.textHint,
                       fontSize: 12,
                     ),
                   ),
@@ -393,27 +401,26 @@ class _AddProductScreenState extends State<AddProductScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(48),
+        color: context.colors.surface, borderRadius: BorderRadius.circular(48),
         border: Border.all(
-          color: AppColors.primaryOrange.withValues(alpha: 0.2),
+          color: context.colors.primaryOrange.withValues(alpha: 0.2),
         ),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: EdgeInsets.symmetric(horizontal: 20),
       child: TextFormField(
         controller: controller,
         keyboardType: isNumber ? TextInputType.number : TextInputType.text,
         style: GoogleFonts.plusJakartaSans(
           fontSize: 16,
-          color: const Color(0xFF0F172A),
+          color: context.colors.textDark,
         ),
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: GoogleFonts.plusJakartaSans(
-            color: const Color(0xFF94A3B8),
+            color: context.colors.textHint,
           ),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(vertical: 16),
+          contentPadding: EdgeInsets.symmetric(vertical: 16),
         ),
         validator: (value) =>
             value == null || value.isEmpty ? "Wajib diisi" : null,
@@ -436,12 +443,11 @@ class _AddProductScreenState extends State<AddProductScreen> {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(48),
+        color: context.colors.surface, borderRadius: BorderRadius.circular(48),
         border: Border.all(
-          color: AppColors.primaryOrange.withValues(alpha: 0.2),
+          color: context.colors.primaryOrange.withValues(alpha: 0.2),
         ),
       ),
       child: DropdownButtonHideUnderline(
@@ -449,10 +455,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
           value: _selectedCategory,
           hint: Text(
             "Pilih Kategori",
-            style: GoogleFonts.plusJakartaSans(color: const Color(0xFF94A3B8)),
+            style: GoogleFonts.plusJakartaSans(color: context.colors.textHint),
           ),
           isExpanded: true,
-          icon: const Icon(
+          icon: Icon(
             Icons.keyboard_arrow_down_rounded,
             color: Color(0xFF6B7280),
           ),
@@ -463,7 +469,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 child: Text(
                   value,
                   style: GoogleFonts.plusJakartaSans(
-                    color: const Color(0xFF0F172A),
+                    color: context.colors.textDark,
                   ),
                 ),
               );
@@ -477,12 +483,11 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   Widget _buildDescriptionField({required TextEditingController controller}) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        color: context.colors.surface, borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: AppColors.primaryOrange.withValues(alpha: 0.2),
+          color: context.colors.primaryOrange.withValues(alpha: 0.2),
         ),
       ),
       child: TextFormField(
@@ -492,7 +497,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
         decoration: InputDecoration(
           hintText: "Ceritakan kepada kami tentang produk ini...",
           hintStyle: GoogleFonts.plusJakartaSans(
-            color: const Color(0xFF94A3B8),
+            color: context.colors.textHint,
           ),
           border: InputBorder.none,
         ),
@@ -507,13 +512,13 @@ class _AddProductScreenState extends State<AddProductScreen> {
         width: double.infinity,
         height: 56,
         decoration: BoxDecoration(
-          color: AppColors.primaryOrange,
+          color: context.colors.primaryOrange,
           borderRadius: BorderRadius.circular(48),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primaryOrange.withValues(alpha: 0.2),
+              color: context.colors.primaryOrange.withValues(alpha: 0.2),
               blurRadius: 15,
-              offset: const Offset(0, 10),
+              offset: Offset(0, 10),
             ),
           ],
         ),
@@ -531,7 +536,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     );
   }
 
-  Widget _buildBackButton(BuildContext context) {
+  Widget _buildBackButton() {
     return GestureDetector(
       onTap: () => Navigator.pop(context),
       child: SizedBox(
@@ -541,7 +546,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
           child: Text(
             "Kembali",
             style: GoogleFonts.plusJakartaSans(
-              color: const Color(0xFF64748B),
+              color: context.colors.textGrey,
               fontSize: 16,
               fontWeight: FontWeight.w600,
             ),
