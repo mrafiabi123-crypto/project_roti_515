@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:roti_515/core/theme/app_theme.dart';
 
-import '../../../core/constants/app_colors.dart';
 
 class ProfileMenuTile extends StatelessWidget {
   final IconData icon;
@@ -20,14 +20,14 @@ class ProfileMenuTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: 24, vertical: 4),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(48),
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: context.colors.surface,
             borderRadius: BorderRadius.circular(48),
           ),
           child: Row(
@@ -36,12 +36,12 @@ class ProfileMenuTile extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: AppColors.primaryOrange.withValues(alpha: 0.1),
+                  color: context.colors.primaryOrange.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(icon, color: AppColors.primaryOrange, size: 20),
+                child: Icon(icon, color: context.colors.primaryOrange, size: 20),
               ),
-              const SizedBox(width: 16),
+              SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -51,7 +51,7 @@ class ProfileMenuTile extends StatelessWidget {
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textDark,
+                        color: context.colors.textDark,
                       ),
                     ),
                     if (subtitle != null)
@@ -59,13 +59,13 @@ class ProfileMenuTile extends StatelessWidget {
                         subtitle!,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12,
-                          color: AppColors.textGrey,
+                          color: context.colors.textGrey,
                         ),
                       ),
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right_rounded, color: AppColors.textHint),
+              Icon(Icons.chevron_right_rounded, color: context.colors.textHint),
             ],
           ),
         ),

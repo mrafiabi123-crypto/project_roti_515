@@ -1,24 +1,32 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:provider/provider.dart';
+import 'package:http/http.dart'
+    as http; // Package untuk melakukan HTTP request ke Backend API
+import 'package:provider/provider.dart'; // Package untuk manajemen state, digunakan untuk mengambil data autentikasi
 
 // --- IMPORT COMPONENT WIDGETS ---
-// Mengimpor sub-komponen UI modular khusus layar profil
-import '../widgets/profile_top_nav_bar.dart';
-import '../widgets/profile_header.dart';
-import '../widgets/profile_section_label.dart';
-import '../widgets/profile_menu_tile.dart';
-import '../widgets/profile_logout_button.dart';
-import 'address_management_screen.dart';
+// Mengimpor widget-widget kecil yang sudah dipisahkan untuk menjaga kode tetap bersih (modular)
+import '../widgets/profile_top_nav_bar.dart'; // Widget bar navigasi atas khusus profil
+import '../widgets/profile_header.dart'; // Widget untuk bagian header (avatar, nama, email)
+import '../widgets/profile_section_label.dart'; // Widget untuk label pemisah kategori menu
+import '../widgets/profile_menu_tile.dart'; // Widget untuk satu baris item menu profil
+import '../widgets/profile_logout_button.dart'; // Widget tombol logout dengan gaya khusus
+import 'address_management_screen.dart'; // Halaman manajemen alamat
+import 'settings_screen.dart'; // Halaman pengaturan
+import '../../../presentation/pages/profile/edit_profile_page.dart'; // Halaman edit profil
 
 // --- IMPORT PONDASI ---
-import '../../../core/constants/app_colors.dart';
-import '../../auth/providers/auth_provider.dart';
-import '../../../core/network/api_service.dart';
-import '../../../presentation/pages/profile/order_history_page.dart';
+// Konstanta warna tema aplikasi
+import '../../auth/providers/auth_provider.dart'; // Provider untuk akses token & data user login
+import '../../../core/network/api_service.dart'; // Service pusat untuk URL/Endpoint API
+import '../../../presentation/pages/profile/order_history_page.dart'; // Halaman riwayat pesanan pelanggan
+import 'package:image_picker/image_picker.dart'; // Paket untuk memilih gambar
+import '../../../core/utils/premium_snackbar.dart'; // Utilitas untuk notifikasi snackbar
+import 'package:http_parser/http_parser.dart';
+import 'package:roti_515/core/theme/app_theme.dart'; // Untuk menentukan media type file upload
 
-/// Layar utama Profil Pengguna (StatefulWidget untuk mengakomodasi state loading dan data asinkron).
+/// Layar utama Profil Pengguna.
+/// Menggunakan StatefulWidget karena layar ini perlu mengambil data dari server dan memperbarui UI.
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
@@ -27,118 +35,235 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  // Menyimpan data profile hasil fetch API dalam Map
+  // Variable Map untuk menampung data user yang didapat dari API (name, email, address, dll)
   Map<String, dynamic>? _userData;
-  
-  // Flag indikator proses request API
+
+  // Flag indikator loading; True saat sedang mengambil data, False jika sudah selesai/gagal
   bool _isLoading = true;
 
-  // Mendapatkan path endpoint API profile dari layanan terpusat
+  // Mengambil URL endpoint profile dari ApiService agar mudah dikelola jika domain berubah
   final String _apiUrl = ApiService.profile;
 
   @override
   void initState() {
     super.initState();
-    // Memanggil API fetch secara implisit sesaat setelah inisialisasi State
+    // Memanggil fungsi fetch data sesaat setelah halaman pertama kali dibuat (diinisialisasi)
     _fetchProfile();
   }
 
-  /// Memuat profil data dari Backend API dengan Autorisasi Token Bearer.
+  /// Fungsi untuk mengambil data profil user dari Backend.
   Future<void> _fetchProfile() async {
     try {
-      // Mengambil token sesi login aktual dari state AuthProvider
+      // Mengambil token JWT dari AuthProvider untuk ditaruh di Header (Autentikasi Bearer)
       final token = Provider.of<AuthProvider>(context, listen: false).token;
-      
-      // Request method GET untuk mengambil detail data diri (Profile)
+
+      // Mengirimkan permintaan GET ke API Profile
       final response = await http.get(
         Uri.parse(_apiUrl),
         headers: {
           "Content-Type": "application/json",
-          "Authorization": "Bearer $token",
+          "Authorization":
+              "Bearer $token", // Mengirimkan token bukti login valid
         },
       );
 
-      // Respon HTTP valid
+      // Jika response dari server adalah 200 (OK/Berhasil)
       if (response.statusCode == 200) {
+        // Mendecode string JSON dari server menjadi Map objek Dart
         final data = jsonDecode(response.body);
-        
-        // Memastikan widget masih di-mount sebelum memicu re-render
+
+        // Memastikan widget masih aktif (tidak di-close oleh user saat loading) sebelum update UI
         if (mounted) {
+          final user = data['user'];
+          // Update global photoUrl di AuthProvider agar AppBar sinkron
+          Provider.of<AuthProvider>(
+            context,
+            listen: false,
+          ).updatePhotoUrl(user['photo_url']);
+
           setState(() {
-            _userData = data['user']; // Menyalin data objek 'user' dari respon JSON
-            _isLoading = false; // Mengakhiri state loading
+            _userData = user; // Menyimpan data 'user' ke variable lokal
+            _isLoading = false; // Menandakan proses loading telah selesai
           });
         }
       } else {
-        // Gagal mengambil data karena HTTP code tidak valid
+        // Jika server mengembalikan error (misal 401 atau 500), matikan indicator loading
         if (mounted) setState(() => _isLoading = false);
       }
     } catch (e) {
-      // Gagal tersambung internet atau server mati
+      // Menangani error jika terjadi kesalahan koneksi internet atau crash saat parsing
       if (mounted) setState(() => _isLoading = false);
+      debugPrint("Error fetching profile: $e");
+    }
+  }
+
+  /// Fungsi untuk memilih foto dari galeri dan mengunggahnya ke server.
+  Future<void> _pickAndUploadImage() async {
+    final picker = ImagePicker();
+    // Memilih gambar dari galeri HP
+    final XFile? image = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 90, // Kualitas awal lebih tinggi karena akan di-crop
+    );
+
+    if (image == null) return;
+    if (!mounted) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final token = Provider.of<AuthProvider>(context, listen: false).token;
+
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse(ApiService.uploadPhoto),
+      );
+      request.headers['Authorization'] = 'Bearer $token';
+
+      // Gunakan file langsung dari picker
+      final bytes = await image.readAsBytes();
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'photo',
+          bytes,
+          filename: 'profile_photo.jpg',
+          contentType: MediaType('image', 'jpeg'),
+        ),
+      );
+
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200) {
+        if (mounted) {
+          PremiumSnackbar.showSuccess(
+            context,
+            "Foto profil berhasil diperbarui!",
+          );
+          _fetchProfile();
+        }
+      } else {
+        if (mounted) {
+          final data = jsonDecode(response.body);
+          PremiumSnackbar.showError(
+            context,
+            data['error'] ?? "Gagal mengunggah foto",
+          );
+          setState(() => _isLoading = false);
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        PremiumSnackbar.showError(context, "Terjadi kesalahan: $e");
+        setState(() => _isLoading = false);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Mengekstrak informasi user dari Map State. Fallback string jika null.
-    String fullName = _userData?['name'] ?? "Loading...";
+    // Menyiapkan data nama dan email untuk ditampilkan di UI.
+    // Jika data belum ada atau kosong, tampilkan teks default
+    String fullName = (_userData?['name'] ?? "").toString();
+    if (fullName.isEmpty) fullName = "Pengguna Roti 515";
     String email = _userData?['email'] ?? "memuat..";
-    
+
     return Scaffold(
-      backgroundColor: AppColors.bgColor, // Mengatur standar background warna aplikasi
+      // Mengatur warna latar belakang halaman menggunakan tema dari AppColors
+      backgroundColor: context.colors.bgColor,
+
+      // Menggunakan logika percabangan untuk tampilan utama
       body: _isLoading
-          // Render progress indikator selama response API dari endpoint profile belum selesai
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primaryOrange))
-          // Render Main Layout Profil jika data siap
+          // 1. Jika masih loading, tampilkan indikator lingkaran berputar di tengah layar
+          ? Center(
+              child: CircularProgressIndicator(
+                color: context.colors.primaryOrange,
+              ),
+            )
+          // 2. Jika sudah selesai loading, tampilkan konten profil sesungguhnya
           : SafeArea(
+              // SafeArea memastikan konten tidak tertutup oleh notch atau status bar HP
               child: SingleChildScrollView(
+                // SingleChildScrollView memungkinkan konten bisa di-scroll jika layar kecil
                 child: Column(
                   children: [
-                    // --- 1. CUSTOM TOP NAVIGATION ---
-                    // Menampilkan bilah navigasi Header dengan title "Profil"
-                    const ProfileTopNavBar(),
+                    // --- 1. BAR NAVIGASI ATAS ---
+                    // Menampilkan header statis dengan tulisan "Profil"
+                    ProfileTopNavBar(),
 
-                    // --- 2. HEADER PROFIL (AVATAR & INFO) ---
-                    // Mengoper data API (_userData) ke widget render Header
-                    ProfileHeader(name: fullName, email: email),
+                    // --- 2. INFORMASI USER (AVATAR & NAMA) ---
+                    // Komponen yang menampilkan gambar avatar, nama lengkap, dan email user
+                    ProfileHeader(
+                      name: fullName,
+                      email: email,
+                      photoUrl: _userData?['photo_url'],
+                      onCameraTap: _pickAndUploadImage,
+                    ),
 
-                    const SizedBox(height: 24),
+                    // Memberikan jarak vertikal antar elemen
+                    SizedBox(height: 24),
 
-                    // --- 3. MENU SECTION: AKTIVITAS AKUN ---
-                    // Label seksio
-                    const ProfileSectionLabel(label: "Aktivitas Akun"),
-                    
-                    // Modul Tombol Navigasi Menu: Riwayat Pesanan
+                    // --- 3. KATEGORI: AKTIVITAS AKUN ---
+                    ProfileSectionLabel(label: "Aktivitas Akun"),
+
+                    // Tombol Menu: Edit Profil
                     ProfileMenuTile(
-                      icon: Icons.receipt_long_rounded,
-                      title: "Riwayat Pesanan",
+                      icon: Icons.edit_rounded,
+                      title: "Edit Profil",
+                      subtitle: "Ubah nama, telepon & password",
+                      onTap: () async {
+                        if (_userData == null) return;
+                        final updated = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                EditProfilePage(userData: _userData!),
+                          ),
+                        );
+                        // Refresh profil jika ada perubahan
+                        if (updated == true && mounted) {
+                          _fetchProfile();
+                        }
+                      },
+                    ),
+
+                    // Tombol Menu: Riwayat Pesanan
+                    ProfileMenuTile(
+                      icon: Icons.receipt_long_rounded, // Icon struk/order
+                      title: "Riwayat Pesanan", // Judul menu
                       onTap: () {
+                        // Navigasi pindah ke halaman OrderHistoryPage
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const OrderHistoryPage(),
+                            builder: (context) => OrderHistoryPage(),
                           ),
                         );
                       },
                     ),
-                    
-                    // Modul Tombol Navigasi Menu: Modifikasi Alamat
+
+                    // Tombol Menu: Alamat Lengkap
                     ProfileMenuTile(
-                      icon: Icons.location_on_rounded,
+                      icon: Icons.location_on_rounded, // Icon lokasi map
                       title: "Alamat Lengkap",
-                      subtitle: (_userData?['address'] as String? ?? "").isNotEmpty
+                      // Subtitle dinamis: Menampilkan alamat jika ada, atau teks instruksi jika kosong
+                      subtitle:
+                          (_userData?['address'] as String? ?? "").isNotEmpty
                           ? _userData!['address']
                           : "Tambahkan / Ubah",
                       onTap: () async {
+                        // Menunggu hasil kembalian (alamat baru) dari halaman AddressManagementScreen
                         final newAddress = await Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => AddressManagementScreen(
-                              currentAddress: _userData?['address'] ?? "Ambil Di Toko",
+                              currentAddress:
+                                  _userData?['address'] ?? "Ambil Di Toko",
                             ),
                           ),
                         );
+
+                        // Jika ada alamat baru yang dikembalikan, update UI lokal
                         if (newAddress != null && mounted) {
                           setState(() {
                             _userData?['address'] = newAddress;
@@ -147,27 +272,34 @@ class _ProfilePageState extends State<ProfilePage> {
                       },
                     ),
 
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
 
-                    // --- 4. MENU SECTION: PREFERENSI ---
-                    const ProfileSectionLabel(label: "Preferensi"),
-                    
-                    // Modul Tombol Navigasi Menu: Pengaturan
+                    // --- 4. KATEGORI: PREFERENSI ---
+                    ProfileSectionLabel(label: "Preferensi"),
+
+                    // Tombol Menu: Pengaturan (Saat ini masih statis/kosong)
                     ProfileMenuTile(
                       icon: Icons.settings_rounded,
                       title: "Pengaturan Utama",
                       subtitle: "Notifikasi, Privasi",
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SettingsScreen(),
+                          ),
+                        );
+                      },
                     ),
 
-                    const SizedBox(height: 32),
+                    SizedBox(height: 32),
 
-                    // --- 5. TOMBOL LOGOUT (SOFT RED STYLE) ---
-                    // Memuat Widget kustom konfirmasi Logout system (terhubung ke AuthProvider)
-                    const ProfileLogoutButton(),
+                    // --- 5. AREA TOMBOL LOGOUT ---
+                    // Widget khusus yang menangani proses keluar akun (Logout)
+                    ProfileLogoutButton(),
 
-                    // Bantalan margin penahan dari BottomNavigationBar utama Scaffold
-                    const SizedBox(height: 100), 
+                    // Memberikan padding/jarak bawah yang cukup agar tidak terpotong Navbar utama
+                    SizedBox(height: 100),
                   ],
                 ),
               ),

@@ -4,10 +4,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
-import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/premium_snackbar.dart';
 import '../../../core/network/api_service.dart';
 import '../../auth/providers/auth_provider.dart';
+import 'package:roti_515/core/theme/app_theme.dart';
 
 class AddressManagementScreen extends StatefulWidget {
   final String currentAddress;
@@ -37,7 +37,7 @@ class _AddressManagementScreenState extends State<AddressManagementScreen> {
     final address = _addressController.text.trim();
     if (address.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Alamat tidak boleh kosong")),
+        SnackBar(content: Text("Alamat tidak boleh kosong")),
       );
       return;
     }
@@ -76,18 +76,18 @@ class _AddressManagementScreenState extends State<AddressManagementScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bgColor,
+      backgroundColor: context.colors.bgColor,
       appBar: AppBar(
-        backgroundColor: AppColors.bgColor,
+        backgroundColor: context.colors.bgColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textDark, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: context.colors.textDark, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           "Alamat Lengkap",
           style: GoogleFonts.plusJakartaSans(
-            color: AppColors.textDark,
+            color: context.colors.textDark,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
@@ -95,7 +95,7 @@ class _AddressManagementScreenState extends State<AddressManagementScreen> {
         centerTitle: true,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -104,19 +104,19 @@ class _AddressManagementScreenState extends State<AddressManagementScreen> {
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textDark.withValues(alpha: 0.7),
+                color: context.colors.textDark.withValues(alpha: 0.7),
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             Container(
               decoration: BoxDecoration(
-                color: AppColors.white,
+                color: context.colors.white,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 10,
-                    offset: const Offset(0, 4),
+                    offset: Offset(0, 4),
                   )
                 ],
               ),
@@ -125,30 +125,30 @@ class _AddressManagementScreenState extends State<AddressManagementScreen> {
                 maxLines: 4,
                 decoration: InputDecoration(
                   hintText: "Contoh: Jl. Mawar No. 123, Denpasar, Bali",
-                  hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.textHint, fontSize: 14),
+                  hintStyle: GoogleFonts.plusJakartaSans(color: context.colors.textHint, fontSize: 14),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
                     borderSide: BorderSide.none,
                   ),
-                  contentPadding: const EdgeInsets.all(20),
+                  contentPadding: EdgeInsets.all(20),
                 ),
-                style: GoogleFonts.plusJakartaSans(fontSize: 15, color: AppColors.textDark),
+                style: GoogleFonts.plusJakartaSans(fontSize: 15, color: context.colors.textDark),
               ),
             ),
-            const SizedBox(height: 32),
+            SizedBox(height: 32),
             SizedBox(
               width: double.infinity,
               height: 56,
               child: ElevatedButton(
                 onPressed: _isSaving ? null : _saveAddress,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryOrange,
+                  backgroundColor: context.colors.primaryOrange,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                   elevation: 0,
                 ),
                 child: _isSaving
-                    ? const CircularProgressIndicator(color: Colors.white)
+                    ? CircularProgressIndicator(color: Colors.white)
                     : Text(
                         "Simpan Alamat",
                         style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.bold),
