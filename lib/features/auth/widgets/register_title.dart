@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:roti_515/core/theme/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class RegisterTitle extends StatelessWidget {
@@ -13,16 +14,16 @@ class RegisterTitle extends StatelessWidget {
           style: GoogleFonts.plusJakartaSans(
             fontSize: 32,
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF1B140D),
+            color: context.colors.textDark,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         Text(
           "Daftar untuk memesan kue segar setiap hari dari Roti515.",
           textAlign: TextAlign.center,
           style: GoogleFonts.plusJakartaSans(
             fontSize: 16,
-            color: const Color(0xFF9A734C),
+            color: context.colors.textHint,
             height: 1.5,
           ),
         ),

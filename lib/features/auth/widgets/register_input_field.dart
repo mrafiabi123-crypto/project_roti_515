@@ -1,3 +1,4 @@
+import 'package:roti_515/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -30,22 +31,21 @@ class RegisterInputField extends StatelessWidget {
         Align(
           alignment: Alignment.centerLeft,
           child: Padding(
-            padding: const EdgeInsets.only(left: 8.0, bottom: 8.0),
+            padding: EdgeInsets.only(left: 8.0, bottom: 8.0),
             child: Text(
               label,
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF1B140D),
+                color: context.colors.textDark,
               ),
             ),
           ),
         ),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(9999),
-            border: Border.all(color: const Color(0xFFE7DBCF)),
+            color: context.colors.surface, borderRadius: BorderRadius.circular(9999),
+            border: Border.all(color: context.colors.divider),
           ),
           child: TextField(
             controller: controller,
@@ -53,19 +53,19 @@ class RegisterInputField extends StatelessWidget {
             keyboardType: keyboardType,
             style: GoogleFonts.plusJakartaSans(
               fontSize: 16,
-              color: const Color(0xFF1B140D),
+              color: context.colors.textDark,
             ),
             decoration: InputDecoration(
               hintText: hint,
               hintStyle: GoogleFonts.plusJakartaSans(
-                color: const Color(0xFF9CA3AF),
+                color: context.colors.textHint,
                 fontSize: 16,
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 14),
               border: InputBorder.none,
               suffixIcon: GestureDetector(
                 onTap: onSuffixTap,
-                child: Icon(icon, color: const Color(0xFF9A734C), size: 20),
+                child: Icon(icon, color: context.colors.textHint, size: 20),
               ),
             ),
           ),

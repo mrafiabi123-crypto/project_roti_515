@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:roti_515/core/theme/app_theme.dart';
 
-import '../../../core/constants/app_colors.dart';
 
 class LoginButton extends StatelessWidget {
   final bool isLoading;
@@ -26,7 +26,7 @@ class LoginButton extends StatelessWidget {
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 6,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 4),
             spreadRadius: -1,
           )
         ],
@@ -34,14 +34,14 @@ class LoginButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primaryOrange,
+          backgroundColor: context.colors.primaryOrange,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(48),
           ),
           elevation: 0,
         ),
         child: isLoading
-            ? const SizedBox(
+            ? SizedBox(
                 width: 24,
                 height: 24,
                 child: CircularProgressIndicator(

@@ -1,3 +1,4 @@
+import 'package:roti_515/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
 class RegisterHeader extends StatelessWidget {
@@ -8,7 +9,7 @@ class RegisterHeader extends StatelessWidget {
     return Container(
       width: double.infinity,
       height: 220,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(48)),
         image: DecorationImage(
           image: NetworkImage(
@@ -18,14 +19,14 @@ class RegisterHeader extends StatelessWidget {
       ),
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: const BorderRadius.vertical(bottom: Radius.circular(48)),
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(48)),
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
               Colors.transparent,
-              const Color(0xFFF8F7F6).withValues(alpha: 0.8),
-              const Color(0xFFF8F7F6),
+              context.colors.bgColor.withValues(alpha: 0.8),
+              context.colors.bgColor,
             ],
           ),
         ),

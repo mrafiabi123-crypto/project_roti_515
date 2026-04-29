@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:roti_515/core/theme/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class RegisterFooter extends StatelessWidget {
@@ -13,7 +14,7 @@ class RegisterFooter extends StatelessWidget {
           "Sudah Punya Akun? ",
           style: GoogleFonts.plusJakartaSans(
             fontSize: 14,
-            color: const Color(0xFF9A734C),
+            color: context.colors.textHint,
           ),
         ),
         GestureDetector(
@@ -23,7 +24,7 @@ class RegisterFooter extends StatelessWidget {
             style: GoogleFonts.plusJakartaSans(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: const Color(0xFFD47311),
+              color: context.colors.primaryOrange,
             ),
           ),
         ),

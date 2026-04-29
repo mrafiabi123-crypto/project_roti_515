@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:roti_515/core/theme/app_theme.dart';
 
-import '../../../core/constants/app_colors.dart';
 
 class LoginInputField extends StatelessWidget {
   final TextEditingController controller;
@@ -11,6 +11,7 @@ class LoginInputField extends StatelessWidget {
   final bool isPassword;
   final bool obscureText;
   final VoidCallback? onSuffixTap;
+  final TextInputType? keyboardType; // Tambahkan ini
 
   const LoginInputField({
     super.key,
@@ -21,6 +22,7 @@ class LoginInputField extends StatelessWidget {
     this.isPassword = false,
     this.obscureText = false,
     this.onSuffixTap,
+    this.keyboardType, // Tambahkan ini
   });
 
   @override
@@ -35,18 +37,17 @@ class LoginInputField extends StatelessWidget {
             style: GoogleFonts.plusJakartaSans(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF111827),
+              color: context.colors.textDark,
             ),
           ),
         ),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(48),
-            border: Border.all(color: const Color(0xFFE5E7EB)),
+            color: context.colors.surface, borderRadius: BorderRadius.circular(48),
+            border: Border.all(color: context.colors.divider),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.02),
+                color: Colors.black.withOpacity(0.02),
                 blurRadius: 2,
                 offset: const Offset(0, 1),
               )
@@ -55,11 +56,12 @@ class LoginInputField extends StatelessWidget {
           child: TextField(
             controller: controller,
             obscureText: obscureText,
+            keyboardType: keyboardType, // Gunakan di sini
             style: GoogleFonts.plusJakartaSans(fontSize: 16),
             decoration: InputDecoration(
               hintText: hint,
               hintStyle: GoogleFonts.plusJakartaSans(
-                color: const Color(0xFF9CA3AF),
+                color: context.colors.textHint,
                 fontSize: 14,
               ),
               contentPadding:
@@ -67,7 +69,7 @@ class LoginInputField extends StatelessWidget {
               border: InputBorder.none,
               prefixIcon: Padding(
                 padding: const EdgeInsets.only(left: 16, right: 12),
-                child: Icon(icon, color: AppColors.primaryOrange, size: 20),
+                child: Icon(icon, color: context.colors.primaryOrange, size: 20),
               ),
               prefixIconConstraints: const BoxConstraints(minWidth: 40),
               suffixIcon: isPassword
@@ -79,7 +81,7 @@ class LoginInputField extends StatelessWidget {
                           obscureText
                               ? Icons.visibility_off_outlined
                               : Icons.visibility_outlined,
-                          color: const Color(0xFF9CA3AF),
+                          color: context.colors.textHint,
                           size: 20,
                         ),
                       ),

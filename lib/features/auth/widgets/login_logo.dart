@@ -1,7 +1,8 @@
+import 'package:roti_515/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../core/constants/app_colors.dart';
+
 
 class LoginLogo extends StatelessWidget {
   const LoginLogo({super.key});
@@ -10,45 +11,32 @@ class LoginLogo extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Container(
-          width: 96,
-          height: 96,
-          decoration: BoxDecoration(
-            color: AppColors.primaryOrange.withValues(alpha: 0.1),
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.white, width: 4),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 15,
-                offset: const Offset(0, 10),
-                spreadRadius: -3,
-              )
-            ],
-          ),
-          child: const Center(
-            child: Icon(
-              Icons.bakery_dining_rounded,
-              size: 40,
-              color: AppColors.primaryOrange,
-            ),
+        SizedBox(
+          width: Theme.of(context).brightness == Brightness.dark ? 160 : 320,
+          child: Image.asset(
+            Theme.of(context).brightness == Brightness.dark 
+              ? 'assets/images/brand_logo_dark.png' 
+              : 'assets/images/brand_logo.png',
+            fit: BoxFit.contain,
           ),
         ),
-        const SizedBox(height: 24),
+        SizedBox(height: 16),
         Text(
           "Selamat Datang",
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 30,
+          style: GoogleFonts.pragatiNarrow(
+            fontSize: 32,
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF111827),
+            color: context.colors.textDark,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 4),
         Text(
-          "Roti515.",
+          "Roti 515",
           style: GoogleFonts.plusJakartaSans(
             fontSize: 16,
-            color: const Color(0xFF6B7280),
+            color: context.colors.textGrey,
+            letterSpacing: 2,
+            fontWeight: FontWeight.w500,
           ),
         ),
       ],

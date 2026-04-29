@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:roti_515/core/theme/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class RegisterTermsCheckbox extends StatelessWidget {
@@ -17,7 +18,7 @@ class RegisterTermsCheckbox extends StatelessWidget {
       children: [
         Checkbox(
           value: isAgreed,
-          activeColor: const Color(0xFFD47311),
+          activeColor: context.colors.primaryOrange,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
           onChanged: onChanged,
         ),
@@ -26,7 +27,7 @@ class RegisterTermsCheckbox extends StatelessWidget {
             "Saya setuju dengan Syarat & Ketentuan Roti515",
             style: GoogleFonts.plusJakartaSans(
               fontSize: 13,
-              color: const Color(0xFF9A734C),
+              color: context.colors.textHint,
             ),
           ),
         ),

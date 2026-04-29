@@ -1,3 +1,4 @@
+import 'package:roti_515/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -22,22 +23,22 @@ class RegisterButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(9999),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFD47311).withValues(alpha: 0.20),
+            color: context.colors.primaryOrange.withValues(alpha: 0.20),
             blurRadius: 15,
-            offset: const Offset(0, 10),
+            offset: Offset(0, 10),
           ),
         ],
       ),
       child: ElevatedButton(
         onPressed: (isLoading || !isAgreed) ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFFD47311),
-          disabledBackgroundColor: const Color(0xFFD47311).withValues(alpha: 0.5),
-          shape: const StadiumBorder(),
+          backgroundColor: context.colors.primaryOrange,
+          disabledBackgroundColor: context.colors.primaryOrange.withValues(alpha: 0.5),
+          shape: StadiumBorder(),
           elevation: 0,
         ),
         child: isLoading
-            ? const CircularProgressIndicator(color: Colors.white)
+            ? CircularProgressIndicator(color: Colors.white)
             : Text(
                 "Daftar",
                 style: GoogleFonts.plusJakartaSans(

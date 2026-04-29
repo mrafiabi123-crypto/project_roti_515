@@ -1,67 +1,69 @@
 class UserModel {
-  final int? id; // Menggunakan int? karena ID dari database (seperti MySQL/PostgreSQL) biasanya berupa angka
+  final int id;
   final String name;
   final String email;
-  final String phone;
   final String role;
+  final String? phone;
   final String? address;
   final String? photoUrl;
   final DateTime? createdAt;
 
   UserModel({
-    this.id,
+    required this.id,
     required this.name,
     required this.email,
-    required this.phone,
     required this.role,
+    this.phone,
     this.address,
     this.photoUrl,
     this.createdAt,
   });
 
-  // Fungsi mengubah JSON (dari Backend Go) menjadi Objek Dart
+  /// Factory untuk mengonversi JSON dari API menjadi objek UserModel
   factory UserModel.fromJson(Map<String, dynamic> json) {
-    DateTime? parsedDate;
-    if (json['created_at'] != null) {
-      try {
-        parsedDate = DateTime.parse(json['created_at']).toLocal();
-      } catch (_) {}
-    }
-
     return UserModel(
-      id: json['id'], 
-      name: json['name'] ?? '', // Tanda ?? '' artinya jika dari backend null/kosong, isi dengan string kosong
+      id: json['id'] ?? 0,
+      name: json['name'] ?? '',
       email: json['email'] ?? '',
-      phone: json['phone'] ?? '',
-      role: json['role'] ?? 'user', // Default role adalah 'user'
+      role: json['role'] ?? 'user',
+      phone: json['phone'],
       address: json['address'],
-      photoUrl: json['photo_url'], // Perhatikan: di Dart pakai camelCase (photoUrl), tapi kunci JSON-nya pakai snake_case (photo_url) sesuai Golang
-      createdAt: parsedDate,
+      photoUrl: json['photo_url'],
+      createdAt: json['created_at'] != null 
+          ? DateTime.tryParse(json['created_at']) 
+          : null,
     );
   }
 
-  // Fungsi mengubah Objek Dart menjadi JSON (Biasanya dipakai saat update profil)
+  /// Menghasilkan label waktu relatif (Contoh: "2 hari yang lalu")
+  String get timeAgo {
+    if (createdAt == null) return 'Baru saja';
+    
+    final diff = DateTime.now().difference(createdAt!);
+    
+    if (diff.inMinutes < 60) {
+      return diff.inMinutes <= 1 ? 'Sekarang' : '${diff.inMinutes}m';
+    } else if (diff.inHours < 24) {
+      return '${diff.inHours}j';
+    } else if (diff.inDays < 7) {
+      return '${diff.inDays}h';
+    } else {
+      // Format sederhana: DD/MM/YYYY
+      return '${createdAt!.day}/${createdAt!.month}/${createdAt!.year}';
+    }
+  }
+
+  /// Mengonversi objek kembali ke Map (JSON)
   Map<String, dynamic> toJson() {
     return {
       'id': id,
       'name': name,
       'email': email,
-      'phone': phone,
       'role': role,
+      'phone': phone,
       'address': address,
       'photo_url': photoUrl,
-      if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
+      'created_at': createdAt?.toIso8601String(),
     };
-  }
-
-  // Format waktu relatif untuk UI Admin
-  String get timeAgo {
-    if (createdAt == null) return 'Baru saja';
-    final now = DateTime.now();
-    final diff = now.difference(createdAt!);
-    if (diff.inSeconds < 60) return 'Sekarang';
-    if (diff.inMinutes < 60) return '${diff.inMinutes} Menit lalu';
-    if (diff.inHours < 24) return '${diff.inHours} Jam lalu';
-    return '${diff.inDays} Hari lalu';
   }
 }

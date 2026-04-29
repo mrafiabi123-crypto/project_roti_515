@@ -1,3 +1,4 @@
+import 'package:roti_515/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
 class LoginBackButton extends StatelessWidget {
@@ -11,21 +12,21 @@ class LoginBackButton extends StatelessWidget {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.8),
+          color: context.colors.surface.withValues(alpha: 0.8),
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 2,
-              offset: const Offset(0, 1),
+              offset: Offset(0, 1),
             )
           ],
         ),
         child: IconButton(
-          icon: const Icon(
+          icon: Icon(
             Icons.arrow_back_ios_new_rounded,
             size: 16,
-            color: Color(0xFF1F2937),
+            color: context.colors.textDark,
           ),
           onPressed: () => Navigator.pop(context),
         ),

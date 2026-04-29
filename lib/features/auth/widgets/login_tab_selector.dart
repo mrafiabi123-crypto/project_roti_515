@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:roti_515/core/theme/app_theme.dart';
 
-import '../../../core/constants/app_colors.dart';
 
 class LoginTabSelector extends StatelessWidget {
   final TabController controller;
@@ -12,33 +12,33 @@ class LoginTabSelector extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 52,
-      padding: const EdgeInsets.all(4),
+      padding: EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: const Color(0xFFF3F4F6),
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(48),
       ),
       child: TabBar(
         controller: controller,
         indicator: BoxDecoration(
-          color: AppColors.primaryOrange,
+          color: context.colors.primaryOrange,
           borderRadius: BorderRadius.circular(32),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 2,
-              offset: const Offset(0, 1),
+              offset: Offset(0, 1),
             )
           ],
         ),
         indicatorSize: TabBarIndicatorSize.tab,
         dividerColor: Colors.transparent,
         labelColor: Colors.white,
-        unselectedLabelColor: const Color(0xFF6B7280),
+        unselectedLabelColor: context.colors.textGrey,
         labelStyle: GoogleFonts.plusJakartaSans(
           fontSize: 14,
           fontWeight: FontWeight.w600,
         ),
-        tabs: const [
+        tabs: [
           Tab(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,

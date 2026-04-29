@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart'; // Tambahkan font agar senada
-import '../../../core/constants/app_colors.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:roti_515/core/theme/app_theme.dart'; // Tambahkan font agar senada
 
 class AuthTextField extends StatelessWidget {
   final String hintText;
@@ -25,18 +25,18 @@ class AuthTextField extends StatelessWidget {
     return TextField(
       controller: controller,
       obscureText: isPassword ? obscureText : false, // Pastikan obscureText hanya jalan jika isPassword true
-      style: GoogleFonts.plusJakartaSans(color: AppColors.textDark, fontSize: 15),
+      style: GoogleFonts.plusJakartaSans(color: context.colors.textDark, fontSize: 15),
       decoration: InputDecoration(
         hintText: hintText,
-        hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.textHint, fontSize: 14),
-        prefixIcon: Icon(prefixIcon, color: AppColors.textHint, size: 20),
+        hintStyle: GoogleFonts.plusJakartaSans(color: context.colors.textHint, fontSize: 14),
+        prefixIcon: Icon(prefixIcon, color: context.colors.textHint, size: 20),
         
         // Icon mata untuk password
         suffixIcon: isPassword
             ? IconButton(
                 icon: Icon(
                   obscureText ? Icons.visibility_off_rounded : Icons.visibility_rounded,
-                  color: AppColors.textHint, 
+                  color: context.colors.textHint, 
                   size: 20,
                 ),
                 onPressed: onTogglePassword,
@@ -44,13 +44,13 @@ class AuthTextField extends StatelessWidget {
             : null,
 
         // Border bawah sesuai desain Figma
-        enabledBorder: const UnderlineInputBorder(
-          borderSide: BorderSide(color: AppColors.divider, width: 1.5),
+        enabledBorder: UnderlineInputBorder(
+          borderSide: BorderSide(color: context.colors.divider, width: 1.5),
         ),
-        focusedBorder: const UnderlineInputBorder(
-          borderSide: BorderSide(color: AppColors.primary, width: 2),
+        focusedBorder: UnderlineInputBorder(
+          borderSide: BorderSide(color: context.colors.primary, width: 2),
         ),
-        contentPadding: const EdgeInsets.symmetric(vertical: 12),
+        contentPadding: EdgeInsets.symmetric(vertical: 12),
       ),
     );
   }

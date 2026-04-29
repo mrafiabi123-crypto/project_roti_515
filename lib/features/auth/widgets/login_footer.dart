@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../core/constants/app_colors.dart';
 import '../../../routes/app_routes.dart';
+import 'package:roti_515/core/theme/app_theme.dart';
 
 class LoginFooter extends StatelessWidget {
   const LoginFooter({super.key});
@@ -15,7 +15,7 @@ class LoginFooter extends StatelessWidget {
         Text(
           "Baru Di Roti515? ",
           style: GoogleFonts.plusJakartaSans(
-            color: const Color(0xFF4B5563),
+            color: context.colors.textGrey,
             fontSize: 14,
           ),
         ),
@@ -24,7 +24,7 @@ class LoginFooter extends StatelessWidget {
           child: Text(
             "Mendaftar",
             style: GoogleFonts.plusJakartaSans(
-              color: AppColors.primaryOrange,
+              color: context.colors.primaryOrange,
               fontWeight: FontWeight.bold,
               fontSize: 14,
             ),
