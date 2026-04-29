@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/page_transitions.dart';
 import '../providers/cart_provider.dart';
 import '../screens/cart_screen.dart';
+import 'package:roti_515/core/theme/app_theme.dart';
 
 class AnimatedCartIcon extends StatefulWidget {
   final CartProvider cart;
@@ -32,7 +32,7 @@ class _AnimatedCartIconState extends State<AnimatedCartIcon>
 
     _shakeCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 400),
+      duration: Duration(milliseconds: 400),
     );
 
     // Animasi goyangan ikon keranjang (kiri-kanan ringan)
@@ -76,9 +76,8 @@ class _AnimatedCartIconState extends State<AnimatedCartIcon>
     final count = widget.cart.totalItems;
 
     return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        FadePageRoute(page: const CartScreen()),
+      onTap: () => Navigator.push(context,
+        FadePageRoute(page: CartScreen()),
       ),
       child: Stack(
         clipBehavior: Clip.none,
@@ -95,12 +94,12 @@ class _AnimatedCartIconState extends State<AnimatedCartIcon>
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: AppColors.white,
+                color: context.colors.white,
                 shape: BoxShape.circle,
-                border: Border.all(color: AppColors.divider),
+                border: Border.all(color: context.colors.divider),
               ),
-              child: const Icon(Icons.shopping_cart_outlined,
-                  color: AppColors.textBrown, size: 22),
+              child: Icon(Icons.shopping_cart_outlined,
+                  color: context.colors.textBrown, size: 22),
             ),
           ),
 
@@ -110,7 +109,7 @@ class _AnimatedCartIconState extends State<AnimatedCartIcon>
               right: -2,
               top: -2,
               child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
+                duration: Duration(milliseconds: 300),
                 transitionBuilder: (child, animation) {
                   return ScaleTransition(
                     scale: CurvedAnimation(
@@ -124,16 +123,16 @@ class _AnimatedCartIconState extends State<AnimatedCartIcon>
                   // KEY wajib berubah setiap count berubah supaya
                   // AnimatedSwitcher mendeteksi perubahan widget.
                   key: ValueKey(count),
-                  padding: const EdgeInsets.all(4),
-                  decoration: const BoxDecoration(
-                    color: AppColors.primaryOrange,
+                  padding: EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: context.colors.primaryOrange,
                     shape: BoxShape.circle,
                   ),
                   constraints:
-                      const BoxConstraints(minWidth: 16, minHeight: 16),
+                      BoxConstraints(minWidth: 16, minHeight: 16),
                   child: Text(
                     '$count',
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Colors.white,
                       fontSize: 10,
                       fontWeight: FontWeight.bold,

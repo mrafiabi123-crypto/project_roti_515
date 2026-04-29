@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/price_formatter.dart';
 import '../screens/checkout_screen.dart';
+import 'package:roti_515/core/theme/app_theme.dart';
 
 /// Panel ringkasan harga + tombol "Lanjutkan ke Pembayaran" di bawah cart.
 class CartSummaryBar extends StatelessWidget {
@@ -20,10 +20,10 @@ class CartSummaryBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 24, 16, 32),
+      padding: EdgeInsets.fromLTRB(16, 24, 16, 32),
       decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: const BorderRadius.only(
+        color: context.colors.white,
+        borderRadius: BorderRadius.only(
           topLeft: Radius.circular(32),
           topRight: Radius.circular(32),
         ),
@@ -31,10 +31,10 @@ class CartSummaryBar extends StatelessWidget {
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 30,
-            offset: const Offset(0, -8),
+            offset: Offset(0, -8),
           )
         ],
-        border: const Border(top: BorderSide(color: AppColors.divider)),
+        border: Border(top: BorderSide(color: context.colors.divider)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -46,23 +46,23 @@ class CartSummaryBar extends StatelessWidget {
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textDark,
+                color: context.colors.textDark,
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           _SummaryRow(
             label: "Subtotal",
             value: "Rp ${formatRupiah(subtotal)}",
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           _SummaryRow(
             label: "Biaya Layanan",
             value: deliveryFee == 0 ? "Gratis" : "Rp ${formatRupiah(deliveryFee)}",
           ),
-          const Padding(
+          Padding(
             padding: EdgeInsets.symmetric(vertical: 16),
-            child: Divider(color: AppColors.divider),
+            child: Divider(color: context.colors.divider),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -70,7 +70,7 @@ class CartSummaryBar extends StatelessWidget {
               Text(
                 "Total Harga",
                 style: GoogleFonts.plusJakartaSans(
-                  color: AppColors.textGrey,
+                  color: context.colors.textGrey,
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),
@@ -80,29 +80,28 @@ class CartSummaryBar extends StatelessWidget {
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textDark,
+                  color: context.colors.textDark,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
           ElevatedButton(
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const CheckoutScreen()),
+            onPressed: () => Navigator.push(context,
+              MaterialPageRoute(builder: (context) => CheckoutScreen()),
             ),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryOrange,
-              minimumSize: const Size(double.infinity, 56),
+              backgroundColor: context.colors.primaryOrange,
+              minimumSize: Size(double.infinity, 56),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(9999)),
               elevation: 4,
-              shadowColor: AppColors.primaryOrange.withValues(alpha: 0.4),
+              shadowColor: context.colors.primaryOrange.withValues(alpha: 0.4),
             ),
             child: Text(
               "Lanjutkan ke Pembayaran",
               style: GoogleFonts.plusJakartaSans(
-                color: AppColors.white,
+                color: context.colors.white,
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
               ),
@@ -122,16 +121,16 @@ class _SummaryRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: EdgeInsets.only(bottom: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label,
               style: GoogleFonts.plusJakartaSans(
-                  color: AppColors.textGrey, fontSize: 14)),
+                  color: context.colors.textGrey, fontSize: 14)),
           Text(value,
               style: GoogleFonts.plusJakartaSans(
-                  color: AppColors.textDark,
+                  color: context.colors.textDark,
                   fontWeight: FontWeight.w600,
                   fontSize: 14)),
         ],
@@ -150,28 +149,28 @@ class CartEmptyState extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.shopping_bag_outlined,
-              size: 80, color: AppColors.divider),
-          const SizedBox(height: 20),
+          Icon(Icons.shopping_bag_outlined,
+              size: 80, color: context.colors.divider),
+          SizedBox(height: 20),
           Text(
             "Keranjangmu masih kosong",
             style: GoogleFonts.plusJakartaSans(
-                color: AppColors.textGrey, fontSize: 16),
+                color: context.colors.textGrey, fontSize: 16),
           ),
-          const SizedBox(height: 30),
+          SizedBox(height: 30),
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryOrange,
-              shape: const StadiumBorder(),
+              backgroundColor: context.colors.primaryOrange,
+              shape: StadiumBorder(),
               elevation: 0,
               padding:
-                  const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),
             child: Text(
               "Mulai Belanja",
               style: GoogleFonts.plusJakartaSans(
-                  color: AppColors.white, fontWeight: FontWeight.bold),
+                  color: context.colors.white, fontWeight: FontWeight.bold),
             ),
           ),
         ],

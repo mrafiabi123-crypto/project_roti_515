@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
-import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/price_formatter.dart';
 import '../providers/cart_provider.dart';
+import 'package:roti_515/core/theme/app_theme.dart';
 
 /// Satu baris item di keranjang — gambar, nama, harga, qty selector, hapus.
 class CartItemCard extends StatelessWidget {
@@ -18,17 +18,17 @@ class CartItemCard extends StatelessWidget {
     final cart = Provider.of<CartProvider>(context, listen: false);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.fromLTRB(12, 12, 16, 12),
+      margin: EdgeInsets.only(bottom: 16),
+      padding: EdgeInsets.fromLTRB(12, 12, 16, 12),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: context.colors.white,
         borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: AppColors.divider),
+        border: Border.all(color: context.colors.divider),
         boxShadow: [
           BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 2,
-              offset: const Offset(0, 1))
+              offset: Offset(0, 1))
         ],
       ),
       child: Row(
@@ -45,7 +45,7 @@ class CartItemCard extends StatelessWidget {
               fit: BoxFit.cover,
             ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: 16),
           // Info
           Expanded(
             child: Column(
@@ -60,7 +60,7 @@ class CartItemCard extends StatelessWidget {
                         style: GoogleFonts.plusJakartaSans(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
-                          color: AppColors.textDark,
+                          color: context.colors.textDark,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -68,8 +68,8 @@ class CartItemCard extends StatelessWidget {
                     ),
                     GestureDetector(
                       onTap: () => cart.removeItem(index),
-                      child: const Icon(Icons.delete_outline_rounded,
-                          color: AppColors.textHint, size: 20),
+                      child: Icon(Icons.delete_outline_rounded,
+                          color: context.colors.textHint, size: 20),
                     ),
                   ],
                 ),
@@ -79,13 +79,13 @@ class CartItemCard extends StatelessWidget {
                       : "Roti hangat dari oven",
                   style: GoogleFonts.pontanoSans(
                     fontSize: 12,
-                    color: AppColors.textGrey,
+                    color: context.colors.textGrey,
                     fontWeight: FontWeight.w500,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -94,7 +94,7 @@ class CartItemCard extends StatelessWidget {
                       style: GoogleFonts.plusJakartaSans(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
-                        color: AppColors.primaryOrange,
+                        color: context.colors.primaryOrange,
                       ),
                     ),
                     _QtySelector(cart: cart, index: index, quantity: item.quantity),
@@ -125,36 +125,36 @@ class _QtySelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(4),
+      padding: EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: AppColors.bgColor,
+        color: context.colors.bgColor,
         borderRadius: BorderRadius.circular(9999),
-        border: Border.all(color: AppColors.divider),
+        border: Border.all(color: context.colors.divider),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           _CircleBtn(
             icon: Icons.remove_rounded,
-            bg: AppColors.white,
-            iconColor: AppColors.textDark,
+            bg: context.colors.white,
+            iconColor: context.colors.textDark,
             onTap: () => cart.decreaseQuantity(index),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: EdgeInsets.symmetric(horizontal: 12),
             child: Text(
               "$quantity",
               style: GoogleFonts.plusJakartaSans(
                 fontWeight: FontWeight.w600,
                 fontSize: 14,
-                color: AppColors.textDark,
+                color: context.colors.textDark,
               ),
             ),
           ),
           _CircleBtn(
             icon: Icons.add_rounded,
-            bg: AppColors.primaryOrange,
-            iconColor: AppColors.white,
+            bg: context.colors.primaryOrange,
+            iconColor: context.colors.white,
             hasShadow: true,
             onTap: () => cart.increaseQuantity(index),
           ),
@@ -192,9 +192,9 @@ class _CircleBtn extends StatelessWidget {
           boxShadow: hasShadow
               ? [
                   BoxShadow(
-                    color: AppColors.primaryOrange.withValues(alpha: 0.3),
+                    color: context.colors.primaryOrange.withValues(alpha: 0.3),
                     blurRadius: 4,
-                    offset: const Offset(0, 2),
+                    offset: Offset(0, 2),
                   )
                 ]
               : null,
