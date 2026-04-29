@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_colors.dart';
 import 'checkout_styles.dart';
+import 'package:roti_515/core/theme/app_theme.dart';
 
 /// Progress stepper 3 langkah di atas halaman checkout.
 class CheckoutStepper extends StatelessWidget {
@@ -8,13 +8,13 @@ class CheckoutStepper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+        padding: EdgeInsets.symmetric(horizontal: 32, vertical: 24),
         child: Row(
           children: [
             _StepItem(num: '1', label: 'Pilih Produk'),
-            const Expanded(child: _StepLine()),
+            Expanded(child: _StepLine()),
             _StepItem(num: '2', label: 'Total Harga'),
-            const Expanded(child: _StepLine()),
+            Expanded(child: _StepLine()),
             _StepItem(num: '3', label: 'Konfirmasi'),
           ],
         ),
@@ -34,26 +34,26 @@ class _StepItem extends StatelessWidget {
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: AppColors.primaryOrange,
+              color: context.colors.primaryOrange,
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                    color: AppColors.primaryOrange.withValues(alpha: 0.20),
+                    color: context.colors.primaryOrange.withValues(alpha: 0.20),
                     blurRadius: 6,
-                    offset: const Offset(0, 2)),
+                    offset: Offset(0, 2)),
               ],
             ),
             child: Center(
               child: Text(num,
-                  style: const TextStyle(
-                      color: AppColors.white,
+                  style: TextStyle(
+                      color: context.colors.white,
                       fontWeight: FontWeight.w700,
                       fontSize: 14)),
             ),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
           Text(label,
-              style: pontano(12, AppColors.primaryOrange,
+              style: pontano(12, context.colors.primaryOrange,
                   weight: FontWeight.w600)),
         ],
       );
@@ -65,9 +65,9 @@ class _StepLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
         height: 2,
-        margin: const EdgeInsets.symmetric(horizontal: 8),
+        margin: EdgeInsets.symmetric(horizontal: 8),
         decoration: BoxDecoration(
-          color: AppColors.primaryOrange.withValues(alpha: 0.30),
+          color: context.colors.primaryOrange.withValues(alpha: 0.30),
           borderRadius: BorderRadius.circular(999),
         ),
       );

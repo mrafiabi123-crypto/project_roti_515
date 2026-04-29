@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/price_formatter.dart';
 import '../../providers/cart_provider.dart';
 import 'checkout_styles.dart';
+import 'package:roti_515/core/theme/app_theme.dart';
 
 /// Ringkasan produk yang dipesan + total harga.
 class CheckoutOrderSummary extends StatelessWidget {
@@ -19,14 +19,14 @@ class CheckoutOrderSummary extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Ringkasan Pesanan',
-                style: jakartaBold(18, AppColors.textDark, height: 28 / 18)),
-            const SizedBox(height: 12),
+                style: jakartaBold(18, context.colors.textDark, height: 28 / 18)),
+            SizedBox(height: 12),
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: AppColors.white,
+                color: context.colors.white,
                 borderRadius: BorderRadius.circular(32),
-                border: Border.all(color: const Color(0xFFF3F4F6)),
+                border: Border.all(color: Color(0xFFF3F4F6)),
                 boxShadow: kCardShadow,
               ),
               child: Column(
@@ -39,15 +39,15 @@ class CheckoutOrderSummary extends StatelessWidget {
                       showDivider: i < cart.items.length - 1,
                     ),
                   ),
-                  const Divider(color: Color(0xFFF3F4F6), height: 24),
+                  Divider(color: Color(0xFFF3F4F6), height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text('Total',
-                          style: jakartaRegular(14, AppColors.textBrown)),
+                          style: jakartaRegular(14, context.colors.textBrown)),
                       Text(
                           'Rp ${formatRupiah(cart.totalPrice + deliveryFee)}',
-                          style: jakartaMedium(14, AppColors.textDark)),
+                          style: jakartaMedium(14, context.colors.textDark)),
                     ],
                   ),
                 ],
@@ -87,7 +87,7 @@ class _SummaryItem extends StatelessWidget {
                     fit: BoxFit.cover,
                   ),
                 ),
-                const SizedBox(width: 16),
+                SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -98,29 +98,29 @@ class _SummaryItem extends StatelessWidget {
                         children: [
                           Expanded(
                             child: Text(product.name,
-                                style: jakartaBold(14, AppColors.textDark,
+                                style: jakartaBold(14, context.colors.textDark,
                                     height: 20 / 14),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis),
                           ),
-                          const SizedBox(width: 8),
+                          SizedBox(width: 8),
                           Text('Rp ${formatRupiah(product.price)}',
-                              style: jakartaBold(14, AppColors.textDark,
+                              style: jakartaBold(14, context.colors.textDark,
                                   height: 20 / 14)),
                         ],
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4),
                       Text(
                         product.description.isNotEmpty
                             ? product.description
                             : 'Roti 515',
-                        style: pontano(12, AppColors.textGrey),
+                        style: pontano(12, context.colors.textGrey),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4),
                       Text('Jumlah : $qty',
-                          style: pontano(12, AppColors.primaryOrange,
+                          style: pontano(12, context.colors.primaryOrange,
                               weight: FontWeight.w600)),
                     ],
                   ),
@@ -129,7 +129,7 @@ class _SummaryItem extends StatelessWidget {
             ),
           ),
           if (showDivider)
-            const Divider(color: Color(0xFFF3F4F6), height: 16),
+            Divider(color: Color(0xFFF3F4F6), height: 16),
         ],
       );
 }

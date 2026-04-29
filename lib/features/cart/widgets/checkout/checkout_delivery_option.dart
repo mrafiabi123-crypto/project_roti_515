@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_colors.dart';
 import 'checkout_styles.dart';
+import 'package:roti_515/core/theme/app_theme.dart';
 
 /// Opsi pengambilan produk — "Ambil Di Toko".
 class CheckoutDeliveryOption extends StatelessWidget {
@@ -10,41 +10,49 @@ class CheckoutDeliveryOption extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
         padding: kSectionPadding,
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.white.withValues(alpha: 0.80),
+            color: context.colors.white,
             borderRadius: BorderRadius.circular(32),
-            boxShadow: kCardShadow,
+            boxShadow: [
+              BoxShadow(
+                color: context.colors.primaryOrange.withValues(alpha: 0.15),
+                blurRadius: 16,
+                offset: Offset(0, 4),
+              )
+            ],
+            border: Border.all(
+              color: context.colors.primaryOrange.withValues(alpha: 0.5), 
+              width: 1.5,
+            ),
           ),
           child: Row(
             children: [
               CircleIconWidget(
                 icon: Icons.storefront_rounded,
-                bg: const Color(0xFFF3F4F6),
-                color: const Color(0xFF6B7280),
-                margin: const EdgeInsets.only(right: 16),
+                bg: context.colors.primaryOrange.withValues(alpha: 0.1),
+                color: context.colors.primaryOrange,
+                margin: EdgeInsets.only(right: 16),
               ),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Ambil Di Toko',
-                        style: jakartaBold(16, AppColors.textDark)),
+                        style: jakartaBold(16, context.colors.textDark)),
+                    SizedBox(height: 2),
                     Text('Tersedia dalam 15 menit',
-                        style: jakartaRegular(12, AppColors.textBrown)),
+                        style: jakartaRegular(12, context.colors.textBrown)),
                   ],
                 ),
               ),
-              Text('Gratis', style: jakartaBold(16, AppColors.success)),
-              const SizedBox(width: 12),
               Container(
-                width: 20,
-                height: 20,
+                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border:
-                      Border.all(color: const Color(0xFFD1D5DB), width: 2),
+                  color: context.colors.success.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
                 ),
+                child: Text('Gratis', style: jakartaBold(14, context.colors.success)),
               ),
             ],
           ),

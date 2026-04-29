@@ -21,9 +21,9 @@ TextStyle pontano(double size, Color color,
 
 // ── Shared constants ──────────────────────────────────────────────────────────
 
-const kSectionPadding = EdgeInsets.only(left: 20, right: 20, bottom: 24);
+final kSectionPadding = EdgeInsets.only(left: 20, right: 20, bottom: 24);
 
-const kCardShadow = [
+final kCardShadow = [
   BoxShadow(color: Color(0x0D000000), blurRadius: 2, offset: Offset(0, 1))
 ];
 
