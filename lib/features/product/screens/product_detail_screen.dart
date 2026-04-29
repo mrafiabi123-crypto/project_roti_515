@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/constants/app_colors.dart';
 import '../models/product_model.dart';
 import '../widgets/detail/detail_widgets.dart';
 import '../widgets/detail/detail_bottom_bar.dart';
+import 'package:roti_515/core/theme/app_theme.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final ProductModel product;
@@ -25,12 +25,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bgColor,
+      backgroundColor: context.colors.bgColor,
       body: Stack(
         children: [
           // Konten utama yang bisa di-scroll
           SingleChildScrollView(
-            padding: const EdgeInsets.only(bottom: 120),
+            padding: EdgeInsets.only(bottom: 120),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -47,7 +47,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           ),
 
           // Tombol kembali & favorit (floating glassmorphism)
-          const DetailFloatingActions(),
+          DetailFloatingActions(),
 
           // Sticky bottom bar
           Align(

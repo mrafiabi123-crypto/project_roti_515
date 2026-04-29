@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
-import '../../../core/constants/app_colors.dart';
 import '../providers/product_provider.dart';
+import 'package:roti_515/core/theme/app_theme.dart';
 
 class ProductCategoryBar extends StatelessWidget {
   final List<String> categories;
@@ -21,7 +21,7 @@ class ProductCategoryBar extends StatelessWidget {
       height: 46,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+        padding: EdgeInsets.symmetric(horizontal: 20),
         itemCount: categories.length,
         itemBuilder: (context, index) {
           final name = categories[index];
@@ -31,22 +31,22 @@ class ProductCategoryBar extends StatelessWidget {
           return GestureDetector(
             onTap: () => provider.setCategory(categoryValue),
             child: Container(
-              margin: const EdgeInsets.only(right: 12),
-              padding: const EdgeInsets.symmetric(horizontal: 25),
+              margin: EdgeInsets.only(right: 12),
+              padding: EdgeInsets.symmetric(horizontal: 25),
               decoration: BoxDecoration(
-                color: isSelected ? AppColors.primaryOrange : AppColors.white,
+                color: isSelected ? context.colors.primaryOrange : context.colors.white,
                 borderRadius: BorderRadius.circular(9999),
                 border: Border.all(
                   color: isSelected
-                      ? AppColors.primaryOrange
-                      : AppColors.divider,
+                      ? context.colors.primaryOrange
+                      : context.colors.divider,
                 ),
               ),
               alignment: Alignment.center,
               child: Text(
                 name,
                 style: GoogleFonts.plusJakartaSans(
-                  color: isSelected ? AppColors.white : AppColors.textGrey,
+                  color: isSelected ? context.colors.white : context.colors.textGrey,
                   fontWeight: FontWeight.bold,
                   fontSize: 13,
                 ),

@@ -2,10 +2,12 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../../core/constants/app_colors.dart';
+import '../../../../presentation/pages/profile/rating_dialog.dart';
+
 import '../../../../core/utils/price_formatter.dart';
 import '../../models/product_model.dart';
 import '../../../../core/utils/premium_snackbar.dart';
+import 'package:roti_515/core/theme/app_theme.dart';
 
 /// Header gambar besar di atas halaman detail produk.
 class DetailImageHeader extends StatelessWidget {
@@ -18,21 +20,21 @@ class DetailImageHeader extends StatelessWidget {
       width: double.infinity,
       height: 400,
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: const BorderRadius.only(
+        color: context.colors.surface,
+        borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(40),
           bottomRight: Radius.circular(40),
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.textDark.withValues(alpha: 0.1),
+            color: context.colors.textDark.withValues(alpha: 0.1),
             blurRadius: 10,
-            offset: const Offset(0, 8),
+            offset: Offset(0, 8),
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: const BorderRadius.only(
+        borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(40),
           bottomRight: Radius.circular(40),
         ),
@@ -88,7 +90,7 @@ class DetailProductInfo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+      padding: EdgeInsets.fromLTRB(24, 24, 24, 0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -100,43 +102,59 @@ class DetailProductInfo extends StatelessWidget {
                   product.name,
                   style: GoogleFonts.dmSerifDisplay(
                     fontSize: 30,
-                    color: AppColors.textBrown,
+                    color: context.colors.textBrown,
                     height: 1.2,
                   ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(
+                      padding: EdgeInsets.symmetric(
                           horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: AppColors.primaryOrange.withValues(alpha: 0.15),
+                        color: context.colors.primaryOrange.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.star_rounded,
-                              color: AppColors.primaryOrange, size: 14),
-                          const SizedBox(width: 4),
+                          Icon(Icons.star_rounded,
+                              color: context.colors.primaryOrange, size: 14),
+                          SizedBox(width: 4),
                           Text(
                             "${product.rating}",
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.primaryOrange,
+                              color: context.colors.primaryOrange,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      "(120 ulasan)",
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 14,
-                        color: AppColors.textGrey,
-                        decoration: TextDecoration.underline,
+                    SizedBox(width: 12),
+                    GestureDetector(
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (_) => RatingDialog(
+                            orderId: 0, // 0 berarti review lepas (tanpa order)
+                            foodId: product.id,
+                            foodName: product.name,
+                          ),
+                        );
+                      },
+                      child: Text(
+                        "Beri Ulasan",
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: context.colors.primaryOrange,
+                          decoration: TextDecoration.underline,
+                          decorationColor: context.colors.primaryOrange,
+                        ),
                       ),
                     ),
                   ],
@@ -144,12 +162,12 @@ class DetailProductInfo extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: 16),
           Text(
             "Rp ${formatRupiah(product.price)}",
             style: GoogleFonts.dmSerifDisplay(
               fontSize: 24,
-              color: AppColors.textDark,
+              color: context.colors.textDark,
             ),
           ),
         ],
@@ -166,7 +184,7 @@ class DetailDescription extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+      padding: EdgeInsets.fromLTRB(24, 24, 24, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -174,21 +192,21 @@ class DetailDescription extends StatelessWidget {
             "Deskripsi",
             style: GoogleFonts.dmSerifDisplay(
               fontSize: 18,
-              color: AppColors.textBrown,
+              color: context.colors.textBrown,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Text(
             product.description.isNotEmpty
                 ? product.description
                 : "Deskripsi produk belum tersedia.",
             style: GoogleFonts.notoSans(
               fontSize: 14,
-              color: AppColors.textGrey,
+              color: context.colors.textGrey,
               height: 1.6,
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -197,10 +215,10 @@ class DetailDescription extends StatelessWidget {
                   text: product.category.isNotEmpty
                       ? product.category
                       : "Roti"),
-              if (product.isBestseller) const _Tag(text: "Bestseller 🔥"),
+              if (product.isBestseller) _Tag(text: "Bestseller 🔥"),
               _Tag(
                 text: product.stock == 0 ? "Stok Habis" : "Stok: ${product.stock}",
-                color: product.stock == 0 ? AppColors.error : AppColors.primaryOrange,
+                color: product.stock == 0 ? context.colors.error : context.colors.primaryOrange,
               ),
             ],
           ),
@@ -226,7 +244,7 @@ class DetailQuantitySelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -237,23 +255,23 @@ class DetailQuantitySelector extends StatelessWidget {
                 "Sesuaikan",
                 style: GoogleFonts.dmSerifDisplay(
                   fontSize: 18,
-                  color: AppColors.textBrown,
+                  color: context.colors.textBrown,
                 ),
               ),
               Text(
                 "Opsional",
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 12,
-                  color: AppColors.textHint,
+                  color: context.colors.textHint,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: context.colors.surface,
               borderRadius: BorderRadius.circular(40),
             ),
             child: Row(
@@ -264,21 +282,21 @@ class DetailQuantitySelector extends StatelessWidget {
                   style: GoogleFonts.pragatiNarrow(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textBrown,
+                    color: context.colors.textBrown,
                   ),
                 ),
                 Container(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppColors.white,
+                    color: context.colors.white,
                     borderRadius: BorderRadius.circular(32),
-                    border: Border.all(color: AppColors.divider),
+                    border: Border.all(color: context.colors.divider),
                     boxShadow: [
                       BoxShadow(
-                          color: AppColors.textDark.withValues(alpha: 0.05),
+                          color: context.colors.textDark.withValues(alpha: 0.05),
                           blurRadius: 2,
-                          offset: const Offset(0, 1))
+                          offset: Offset(0, 1))
                     ],
                   ),
                   child: Row(
@@ -291,8 +309,8 @@ class DetailQuantitySelector extends StatelessWidget {
                           decoration: BoxDecoration(
                               color: Colors.transparent,
                               borderRadius: BorderRadius.circular(24)),
-                          child: const Icon(Icons.remove_rounded,
-                              color: AppColors.textHint, size: 18),
+                          child: Icon(Icons.remove_rounded,
+                              color: context.colors.textHint, size: 18),
                         ),
                       ),
                       SizedBox(
@@ -303,7 +321,7 @@ class DetailQuantitySelector extends StatelessWidget {
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.textBrown,
+                            color: context.colors.textBrown,
                           ),
                         ),
                       ),
@@ -313,17 +331,17 @@ class DetailQuantitySelector extends StatelessWidget {
                           width: 32,
                           height: 32,
                           decoration: BoxDecoration(
-                            color: AppColors.textBrown,
+                            color: context.colors.textBrown,
                             borderRadius: BorderRadius.circular(24),
                             boxShadow: [
                               BoxShadow(
-                                  color: AppColors.textDark.withValues(alpha: 0.1),
+                                  color: context.colors.textDark.withValues(alpha: 0.1),
                                   blurRadius: 4,
-                                  offset: const Offset(0, 2))
+                                  offset: Offset(0, 2))
                             ],
                           ),
-                          child: const Icon(Icons.add_rounded,
-                              color: AppColors.white, size: 18),
+                          child: Icon(Icons.add_rounded,
+                              color: context.colors.white, size: 18),
                         ),
                       ),
                     ],
@@ -348,22 +366,22 @@ class _Tag extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: color != null 
             ? color!.withValues(alpha: 0.1) 
-            : AppColors.surface,
+            : context.colors.surface,
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
             color: color != null 
                 ? color!.withValues(alpha: 0.2) 
-                : AppColors.divider),
+                : context.colors.divider),
       ),
       child: Text(
         text,
         style: GoogleFonts.plusJakartaSans(
           fontSize: 12,
-          color: color ?? AppColors.textBrown,
+          color: color ?? context.colors.textBrown,
           fontWeight: FontWeight.bold,
         ),
       ),
@@ -390,12 +408,12 @@ class _GlassButton extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppColors.white.withValues(alpha: 0.3),
+              color: context.colors.white.withValues(alpha: 0.3),
               shape: BoxShape.circle,
               border:
-                  Border.all(color: AppColors.white.withValues(alpha: 0.2)),
+                  Border.all(color: context.colors.white.withValues(alpha: 0.2)),
             ),
-            child: Icon(icon, color: AppColors.textDark, size: size),
+            child: Icon(icon, color: context.colors.textDark, size: size),
           ),
         ),
       ),

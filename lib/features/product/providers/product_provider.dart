@@ -13,12 +13,14 @@ class ProductProvider extends ChangeNotifier {
   String _errorMessage = '';
   String _selectedCategory = 'All';
   String _searchQuery = '';
+  String _sortOption = 'bestseller'; // Sortir aktif: bestseller | newest | price_asc | price_desc
 
   // Getters untuk diakses oleh UI
   List<ProductModel> get products => _products;
   bool get isLoading => _isLoading;
   String get errorMessage => _errorMessage;
   String get selectedCategory => _selectedCategory;
+  String get sortOption => _sortOption;
 
   /// Memfilter produk unggulan (Bestseller)
   List<ProductModel> get bestsellers =>
@@ -33,12 +35,16 @@ class ProductProvider extends ChangeNotifier {
   final String _staticUrl = ApiService.staticFiles;
 
   /// Mengambil data produk dari backend REST API dengan opsi pencarian/filter.
-  Future<void> fetchProducts({String? query}) async {
+  /// Parameter [sort] mengontrol urutan tampilan secara lokal (client-side).
+  Future<void> fetchProducts({String? query, String? sort}) async {
     _isLoading = true;
     _errorMessage = '';
 
     if (query != null) {
       _searchQuery = query;
+    }
+    if (sort != null) {
+      _sortOption = sort;
     }
 
     try {
@@ -57,7 +63,7 @@ class ProductProvider extends ChangeNotifier {
       debugPrint("📡 Memeriksa API: $uri");
 
       // Modifikasi timeout 10 detik untuk mencegah aplikasi menggantung (hang)
-      final response = await http.get(uri).timeout(const Duration(seconds: 10));
+      final response = await http.get(uri).timeout(Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> decodedData = jsonDecode(response.body);
@@ -73,6 +79,23 @@ class ProductProvider extends ChangeNotifier {
           }
           return ProductModel.fromJson(json);
         }).toList();
+
+        // ++ Filter lokal jika backend tidak menyaring dengan benar ++
+        if (_selectedCategory != 'All') {
+          _products = _products
+              .where((p) => p.category.toLowerCase() == _selectedCategory.toLowerCase())
+              .toList();
+        }
+
+        if (_searchQuery.isNotEmpty) {
+          _products = _products
+              .where((p) =>
+                  p.name.toLowerCase().contains(_searchQuery.toLowerCase()))
+              .toList();
+        }
+
+        // Sorting secara lokal (client-side) agar tidak perlu ubah backend
+        _applySorting();
 
         debugPrint("✅ Berhasil memuat ${_products.length} produk.");
       } else {
@@ -99,10 +122,39 @@ class ProductProvider extends ChangeNotifier {
     fetchProducts();
   }
 
+  /// Mengubah opsi sortir dan memperbarui tampilan produk.
+  void setSortOption(String sort) {
+    _sortOption = sort;
+    _applySorting();
+    notifyListeners();
+  }
+
+  /// Sorting lokal berdasarkan _sortOption yang aktif.
+  void _applySorting() {
+    switch (_sortOption) {
+      case 'bestseller':
+        // Tampilkan bestseller di atas
+        _products.sort((a, b) =>
+            (b.isBestseller ? 1 : 0).compareTo(a.isBestseller ? 1 : 0));
+        break;
+      case 'newest':
+        // Urutkan berdasarkan ID descending (ID terbesar = paling baru)
+        _products.sort((a, b) => b.id.compareTo(a.id));
+        break;
+      case 'price_asc':
+        _products.sort((a, b) => a.price.compareTo(b.price));
+        break;
+      case 'price_desc':
+        _products.sort((a, b) => b.price.compareTo(a.price));
+        break;
+    }
+  }
+
   /// Membersihkan seluruh filter pencarian & kategori ke posisi awal.
   void clearFilters() {
     _selectedCategory = 'All';
     _searchQuery = '';
+    _sortOption = 'bestseller';
     fetchProducts();
   }
 }

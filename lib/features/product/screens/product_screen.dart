@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart'; // Paket untuk menggunakan font
 import 'package:provider/provider.dart'; // Paket untuk memanggil State Provider agar data otomatis diperbarui jika terjadi perubahan
 
 // Mengimpor file pondasi warna (AppColors)
-import '../../../core/constants/app_colors.dart';
 // Mengimpor ProductProvider yang menyediakan filter, search, & mengunduh data daftar produk
 import '../providers/product_provider.dart';
 
@@ -12,6 +11,10 @@ import '../widgets/product_app_bar.dart'; // Komponen kepala atas (App Bar) deng
 import '../widgets/product_category_bar.dart'; // Komponen baris pil (kapsul) kategori (Roti, Biskuit, dll.)
 import '../widgets/product_card.dart'; // Komponen kardus tampilan daftar produk
 import '../../../core/widgets/staggered_fade_animation.dart'; // Animasi efek transisi saat me-*render* produk
+
+// Import Bottom Sheet Filter dari fitur Home
+import '../../home/widgets/home_filter_sheet.dart';
+import 'package:roti_515/core/theme/app_theme.dart';
 
 // Ini adalah Layar Menu Produk UTAMA. Berjenis StatefulWidget (seperti komponen dinamis).
 class ProductScreen extends StatefulWidget {
@@ -48,6 +51,35 @@ class _ProductScreenState extends State<ProductScreen> {
         .fetchProducts(query: query);
   }
 
+  // Dipanggil saat user men-tap ikon filter (tune)
+  void _onFilterTap() {
+    final provider = Provider.of<ProductProvider>(context, listen: false);
+    
+    // Sesuaikan sortOption dari provider dengan enum SortOption
+    SortOption currentSort = SortOption.terlaris;
+    switch (provider.sortOption) {
+      case 'bestseller':
+        currentSort = SortOption.terlaris;
+        break;
+      case 'newest':
+        currentSort = SortOption.terbaru;
+        break;
+      case 'price_asc':
+        currentSort = SortOption.hargaAsc;
+        break;
+      case 'price_desc':
+        currentSort = SortOption.hargaDesc;
+        break;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => HomeFilterSheet(currentSort: currentSort),
+    );
+  }
+
   // Fungsi utama untuk mengatur dan menggambar tata letak widget
   @override
   Widget build(BuildContext context) {
@@ -58,14 +90,17 @@ class _ProductScreenState extends State<ProductScreen> {
 
     // Scaffold me-return kerangka dasar layar
     return Scaffold(
-      backgroundColor: AppColors.bgColor, // Pemberian warna tembok belakang layout dengan keabuabuan standar Roti515
+      backgroundColor: context.colors.bgColor, // Pemberian warna tembok belakang layout dengan keabuabuan standar Roti515
 
       // Kolom untuk menata UI memanjang kebawah (Vertikal)
       body: Column(
         children: [
           // 1. BAGIAN ATAS (App bar) - Kita lewatkan fungsi pencarian _onSearchChanged ke komponen ini, 
           // tempat di mana textfield kustom pencarian berada.
-          ProductAppBar(onSearchChanged: _onSearchChanged),
+          ProductAppBar(
+            onSearchChanged: _onSearchChanged,
+            onFilterTap: _onFilterTap,
+          ),
 
           // Membungkus list produk di dalam "Expanded" agar dia mengambil semua ruang kosong sisa kebawah sampai pojok hp.
           Expanded(
@@ -80,14 +115,14 @@ class _ProductScreenState extends State<ProductScreen> {
                 // 3. TEKS LABEL DAFTAR ("Produk Kami")
                 // Padding diatur menjorok menjauh dari kiri teks agak tidak pinggir betul (kiri 20, atas 24, bawah 16)
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+                  padding: EdgeInsets.fromLTRB(20, 24, 20, 16),
                   child: Text(
                     "Produk Kami",
                     // Menggunakan tipe tulisan yang khas (Pragati Narrow) menyesuaikan desain UI/UX aslinya
                     style: GoogleFonts.pragatiNarrow(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textDark, // Warna hitam kelam
+                      color: context.colors.textDark, // Warna hitam kelam
                     ),
                   ),
                 ),
@@ -95,21 +130,21 @@ class _ProductScreenState extends State<ProductScreen> {
                 // 4. BAGIAN DAFTAR KOTAK PRODUK (Grid produk)
                 // Percabangan (If-else): Jika provider masih dalam tahap memuat (loading)
                 if (provider.isLoading)
-                  const Center(
+                  Center(
                     // Munculkan indikator bundar muter berwarna oranye tanda sedang memproses
                     child: CircularProgressIndicator(
-                        color: AppColors.primaryOrange),
+                        color: context.colors.primaryOrange),
                   )
                 else
                   // Jika selesai memuat asinkronus, render daftar katalog bertipe jaring / Grid
                   GridView.builder(
                     shrinkWrap: true, // Grid perlu dibungkus ke ukuran terkecil kontennya agar sejajar aman di dalam ListView
-                    physics: const NeverScrollableScrollPhysics(), // Buat scroll dari Grid mati (Scroll di takeover dan dikontrol sama `ListView` di atasnya tadi)
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 100), // Berikan padding 100 dibelakang agar tidak bentok batas bottom navigasi
+                    physics: NeverScrollableScrollPhysics(), // Buat scroll dari Grid mati (Scroll di takeover dan dikontrol sama `ListView` di atasnya tadi)
+                    padding: EdgeInsets.fromLTRB(20, 0, 20, 100), // Berikan padding 100 dibelakang agar tidak bentok batas bottom navigasi
 
                     // Peraturan pola Grid yang akan membelah kolom menjadi 2 bagian / 2 kolom produk menyamping (crossAxisCount)
                     gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
+                        SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2, 
                       mainAxisExtent: 280, // Mematok tinggi kartunya agar fix dan tidak gepeng pada berbagai ukuran rasio layar perangkat
                       crossAxisSpacing: 15, // Gap spasium/jurang lebar antar 2 kolom kesamping sebesar 15

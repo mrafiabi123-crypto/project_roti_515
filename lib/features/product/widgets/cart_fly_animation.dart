@@ -111,7 +111,7 @@ class _FlyParticleState extends State<_FlyParticle>
 
     _ctrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 650),
+      duration: Duration(milliseconds: 650),
     );
 
     _x = Tween<double>(
@@ -193,11 +193,11 @@ class _FlyParticleState extends State<_FlyParticle>
                   errorBuilder: (context, error, stackTrace) => Container(
                     width: 60,
                     height: 60,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: Color(0xFFFF6B2B),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.shopping_cart,
+                    child: Icon(Icons.shopping_cart,
                         color: Colors.white, size: 28),
                   ),
                 ),

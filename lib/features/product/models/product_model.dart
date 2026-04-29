@@ -10,6 +10,7 @@ class ProductModel {
   final String category;
   final bool isBestseller;
   final int stock;
+  final int soldCount;
 
   ProductModel({
     required this.id,
@@ -21,6 +22,7 @@ class ProductModel {
     required this.category,
     required this.isBestseller,
     required this.stock,
+    required this.soldCount,
   });
 
   // Fungsi sakti untuk mengubah JSON dari Golang menjadi Object Flutter
@@ -44,6 +46,7 @@ class ProductModel {
       // Field baru sesuai database MySQL
       isBestseller: json['is_bestseller'] ?? false,
       stock: json['stock'] ?? 0,
+      soldCount: json['sold_count'] ?? 0,
     );
   }
 }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../core/constants/app_colors.dart';
+import 'package:roti_515/core/theme/app_theme.dart';
 
 class AnimatedFavoriteButton extends StatefulWidget {
   final bool isFavorite;
@@ -20,8 +20,8 @@ class _AnimatedFavoriteButtonState extends State<AnimatedFavoriteButton>
     super.initState();
     _ctrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 150),
-      reverseDuration: const Duration(milliseconds: 200),
+      duration: Duration(milliseconds: 150),
+      reverseDuration: Duration(milliseconds: 200),
     );
     _scale = TweenSequence<double>([
       TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.4), weight: 50),
@@ -53,12 +53,12 @@ class _AnimatedFavoriteButtonState extends State<AnimatedFavoriteButton>
           width: 28,
           height: 28,
           decoration: BoxDecoration(
-            color: AppColors.white.withValues(alpha: 0.9),
+            color: context.colors.white.withValues(alpha: 0.9),
             shape: BoxShape.circle,
             boxShadow: [
               if (widget.isFavorite)
                 BoxShadow(
-                  color: AppColors.error.withValues(alpha: 0.2),
+                  color: context.colors.error.withValues(alpha: 0.2),
                   blurRadius: 8,
                   spreadRadius: 2,
                 )
@@ -66,7 +66,7 @@ class _AnimatedFavoriteButtonState extends State<AnimatedFavoriteButton>
           ),
           child: Icon(
             widget.isFavorite ? Icons.favorite_rounded : Icons.favorite_outline_rounded,
-            color: widget.isFavorite ? AppColors.error : AppColors.textHint,
+            color: widget.isFavorite ? context.colors.error : context.colors.textHint,
             size: 16,
           ),
         ),
