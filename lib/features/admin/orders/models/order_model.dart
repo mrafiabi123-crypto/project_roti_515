@@ -89,9 +89,11 @@ class OrderModel {
       parsedDate = DateTime.now();
     }
 
-    // Gunakan ID sebagai nomor order, diformat ROTI515-xxx
+    // Gunakan order_ref jika ada (ORD-XYZW), bila backend versi lama gunakan ID fallback
     final rawId = json['id'] ?? 0;
-    final formattedOrderId = 'ROTI515-$rawId';
+    final formattedOrderId = (json['order_ref'] != null && json['order_ref'].toString().isNotEmpty)
+        ? json['order_ref'].toString()
+        : 'ROTI515-$rawId';
 
     // Cek objek user yang dipreload
     final userMap = json['user'] as Map<String, dynamic>?;
@@ -126,6 +128,7 @@ class OrderModel {
   bool get isPending => status == 'pending';
   bool get isProcessing => status == 'processing';
   bool get isCompleted => status == 'completed' || status == 'done';
+  bool get isCancelled => status == 'cancelled';
 
   // Apakah jam pengambilan sudah ditetapkan admin
   bool get hasPickupTime => pickupTime != null && pickupTime!.isNotEmpty;

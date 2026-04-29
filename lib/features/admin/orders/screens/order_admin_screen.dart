@@ -3,11 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../core/constants/app_colors.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../models/order_model.dart';
 import '../providers/order_admin_provider.dart';
 import '../../../../core/utils/premium_snackbar.dart';
+import '../../../admin/dashboard/providers/admin_stats_provider.dart';
+import '../../profile/screens/admin_profile_screen.dart';
+import 'package:roti_515/core/theme/theme_provider.dart';
+import 'package:roti_515/core/theme/app_theme.dart';
+import 'package:roti_515/core/network/api_service.dart';
 
 // ============================================================
 // HALAMAN UTAMA ORDER ADMIN
@@ -42,9 +46,9 @@ class _OrderAdminScreenState extends State<OrderAdminScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F7F6),
+      backgroundColor: context.colors.bgColor,
       appBar: _buildAppBar(),
-      body: const Column(
+      body: Column(
         children: [
           _OrderTabBar(),
           Expanded(child: _OrderListContent()),
@@ -55,60 +59,63 @@ class _OrderAdminScreenState extends State<OrderAdminScreen> {
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: const Color(0xFFF8F7F6).withValues(alpha: 0.95),
+      backgroundColor: context.colors.bgColor,
       elevation: 0,
-      scrolledUnderElevation: 0,
-      titleSpacing: 0,
-      title: Padding(
-        padding: const EdgeInsets.only(left: 21),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppColors.primaryOrange.withValues(alpha: 0.10),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: const Icon(
-                Icons.bakery_dining_rounded,
-                color: AppColors.primaryOrange,
-                size: 22,
-              ),
+      centerTitle: false,
+      automaticallyImplyLeading: false,
+      title: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: context.colors.primaryOrange.withValues(alpha: 0.1), 
+              borderRadius: BorderRadius.circular(16)
             ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'roti515',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFF0F172A),
-                  ),
-                ),
-                Text(
-                  ' Portal Admin',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.primaryOrange,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+            child: Icon(Icons.bakery_dining_rounded, color: context.colors.primaryOrange, size: 22),
+          ),
+          SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("roti515", style: GoogleFonts.plusJakartaSans(fontSize: 20, fontWeight: FontWeight.bold, color: context.colors.textDark)),
+              Text("Portal Admin", style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w500, color: context.colors.primaryOrange)),
+            ],
+          ),
+        ],
       ),
       actions: [
+        Consumer<ThemeProvider>(
+          builder: (context, theme, _) => IconButton(
+            icon: Icon(
+              theme.isDarkMode ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+              color: context.colors.textDark,
+            ),
+            onPressed: () => theme.toggleTheme(!theme.isDarkMode),
+          ),
+        ),
         Padding(
-          padding: const EdgeInsets.only(right: 16),
-          child: CircleAvatar(
-            backgroundColor: AppColors.primaryOrange.withValues(alpha: 0.10),
-            child: const Icon(
-              Icons.account_circle_outlined,
-              color: AppColors.primaryOrange,
+          padding: EdgeInsets.only(right: 16),
+          child: GestureDetector(
+            onTap: () {
+              Navigator.push(context,
+                MaterialPageRoute(builder: (context) => AdminProfileScreen()),
+              );
+            },
+            child: Consumer<AuthProvider>(
+              builder: (context, auth, _) {
+                final photoUrl = auth.photoUrl;
+                final fullImageUrl = ApiService.getDisplayImage(photoUrl);
+                
+                return CircleAvatar(
+                  backgroundColor: context.colors.primaryOrange.withValues(alpha: 0.1),
+                  backgroundImage: fullImageUrl.isNotEmpty
+                      ? NetworkImage(fullImageUrl)
+                      : null,
+                  child: fullImageUrl.isEmpty
+                      ? Icon(Icons.account_circle_outlined, color: context.colors.primaryOrange)
+                      : null,
+                );
+              },
             ),
           ),
         ),
@@ -129,43 +136,43 @@ class _OrderTabBar extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFF8F7F6),
+        color: context.colors.bgColor,
         border: Border(
           bottom: BorderSide(
-            color: AppColors.primaryOrange.withValues(alpha: 0.10),
+            color: context.colors.primaryOrange.withValues(alpha: 0.10),
           ),
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: EdgeInsets.symmetric(horizontal: 16),
         child: Row(
           children: [
             _buildTabItem(context, 0, 'Tertunda', provider.pendingCount, provider.activeTab),
             _buildTabItem(context, 1, 'Pengolahan', provider.processingCount, provider.activeTab),
             _buildTabItem(context, 2, 'Selesai', provider.completedCount, provider.activeTab),
+            _buildTabItem(context, 3, 'Dibatalkan', provider.cancelledCount, provider.activeTab),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildTabItem(
-    BuildContext context,
+  Widget _buildTabItem(BuildContext context,
     int index,
     String label,
     int count,
     int activeTab,
   ) {
     final isActive = index == activeTab;
-    final activeColor = AppColors.primaryOrange;
-    final inactiveColor = const Color(0xFF64748B);
+    final activeColor = context.colors.primaryOrange;
+    final inactiveColor = context.colors.textGrey;
 
     return Expanded(
       child: GestureDetector(
         onTap: () => context.read<OrderAdminProvider>().setTab(index),
         behavior: HitTestBehavior.opaque,
         child: Container(
-          padding: const EdgeInsets.only(top: 16, bottom: 12),
+          padding: EdgeInsets.only(top: 16, bottom: 12),
           decoration: BoxDecoration(
             border: Border(
               bottom: BorderSide(
@@ -186,19 +193,19 @@ class _OrderTabBar extends StatelessWidget {
                 ),
               ),
               if (count > 0) ...[
-                const SizedBox(height: 4),
+                SizedBox(height: 4),
                 AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  duration: Duration(milliseconds: 200),
+                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryOrange.withValues(alpha: isActive ? 0.20 : 0.10),
+                    color: context.colors.primaryOrange.withValues(alpha: isActive ? 0.20 : 0.10),
                     borderRadius: BorderRadius.circular(9999),
                   ),
                   child: Text(
                     '$count',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 10,
-                      color: AppColors.primaryOrange,
+                      color: context.colors.primaryOrange,
                     ),
                   ),
                 ),
@@ -223,8 +230,8 @@ class _OrderListContent extends StatelessWidget {
 
     // Loading state
     if (provider.loadState == OrderLoadState.loading) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppColors.primaryOrange),
+      return Center(
+        child: CircularProgressIndicator(color: context.colors.primaryOrange),
       );
     }
 
@@ -235,34 +242,34 @@ class _OrderListContent extends StatelessWidget {
 
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
                 isAuthError ? Icons.lock_outline_rounded : Icons.cloud_off_rounded,
-                color: AppColors.primaryOrange,
+                color: context.colors.primaryOrange,
                 size: 56,
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               Text(
                 isAuthError ? 'Sesi Admin Habis' : 'Gagal Memuat Pesanan',
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFF0F172A),
+                  color: context.colors.textDark,
                 ),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               Text(
                 provider.errorMessage,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 13,
-                  color: const Color(0xFF64748B),
+                  color: context.colors.textGrey,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 28),
+              SizedBox(height: 28),
               // Tombol sesuai jenis error
               if (isAuthError)
                 GestureDetector(
@@ -274,9 +281,9 @@ class _OrderListContent extends StatelessWidget {
                     );
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                    padding: EdgeInsets.symmetric(horizontal: 32, vertical: 14),
                     decoration: BoxDecoration(
-                      color: AppColors.primaryOrange,
+                      color: context.colors.primaryOrange,
                       borderRadius: BorderRadius.circular(9999),
                     ),
                     child: Text(
@@ -293,9 +300,9 @@ class _OrderListContent extends StatelessWidget {
                 GestureDetector(
                   onTap: () => provider.fetchOrders(),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                    padding: EdgeInsets.symmetric(horizontal: 32, vertical: 14),
                     decoration: BoxDecoration(
-                      color: AppColors.primaryOrange,
+                      color: context.colors.primaryOrange,
                       borderRadius: BorderRadius.circular(9999),
                     ),
                     child: Text(
@@ -318,56 +325,58 @@ class _OrderListContent extends StatelessWidget {
 
     // Kosong
     if (orders.isEmpty) {
-      return _buildEmptyState(provider.activeTab);
+      return _buildEmptyState(context, provider.activeTab);
     }
 
     // Daftar pesanan
     return RefreshIndicator(
-      color: AppColors.primaryOrange,
+      color: context.colors.primaryOrange,
       onRefresh: () => provider.fetchOrders(),
       child: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+        padding: EdgeInsets.fromLTRB(16, 16, 16, 100),
         itemCount: orders.length,
-        separatorBuilder: (context, index) => const SizedBox(height: 16),
+        separatorBuilder: (context, index) => SizedBox(height: 16),
         itemBuilder: (ctx, i) => _OrderCard(order: orders[i]),
       ),
     );
   }
 
-  Widget _buildEmptyState(int tab) {
-    const messages = [
+  Widget _buildEmptyState(BuildContext context, int tab) {
+    final messages = [
       'Tidak ada pesanan tertunda',
       'Tidak ada pesanan dalam pengolahan',
       'Belum ada pesanan selesai',
+      'Tidak ada pesanan yang dibatalkan',
     ];
-    const icons = [
+    final icons = [
       Icons.hourglass_empty_rounded,
       Icons.pending_actions_rounded,
       Icons.check_circle_outline_rounded,
+      Icons.cancel_outlined,
     ];
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: EdgeInsets.all(32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icons[tab], color: AppColors.primaryOrange.withValues(alpha: 0.4), size: 64),
-            const SizedBox(height: 16),
+            Icon(icons[tab], color: context.colors.primaryOrange.withValues(alpha: 0.4), size: 64),
+            SizedBox(height: 16),
             Text(
               messages[tab],
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF64748B),
+                color: context.colors.textGrey,
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Text(
               'Pesanan baru akan muncul di sini secara otomatis',
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 12,
-                color: const Color(0xFF94A3B8),
+                color: context.colors.textHint,
               ),
               textAlign: TextAlign.center,
             ),
@@ -399,7 +408,7 @@ class _OrderCardState extends State<_OrderCard> with SingleTickerProviderStateMi
     super.initState();
     _pulseController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1000),
+      duration: Duration(milliseconds: 1000),
     );
     _pulseAnimation = Tween<double>(begin: 1.0, end: 1.02).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
@@ -418,6 +427,7 @@ class _OrderCardState extends State<_OrderCard> with SingleTickerProviderStateMi
 
   Future<void> _handleAction() async {
     final provider = context.read<OrderAdminProvider>();
+    final statsProvider = context.read<AdminStatsProvider>(); // Ambil provider sebelum task run
     String nextStatus;
     String actionLabel;
 
@@ -434,14 +444,77 @@ class _OrderCardState extends State<_OrderCard> with SingleTickerProviderStateMi
     setState(() => _isUpdating = true);
     final success = await provider.updateOrderStatus(widget.order.id, nextStatus);
 
-    if (mounted) {
-      if (success) {
-        PremiumSnackbar.showSuccess(context, "Berhasil, $actionLabel");
-      } else {
-        PremiumSnackbar.showError(context, "Gagal memperbarui status. Silakan coba lagi");
+    if (!mounted) return;
+
+    if (success) {
+      PremiumSnackbar.showSuccess(null, "Berhasil, $actionLabel");
+      // Jika pesanan diselesaikan, langsung refresh statistik dashboard
+      if (nextStatus == 'completed') {
+        statsProvider.refreshNow(); // Gunakan variabel yang diinisasi sebelum gap async
       }
-      setState(() => _isUpdating = false);
+    } else {
+      PremiumSnackbar.showError(null, "Gagal memperbarui status. Silakan coba lagi");
     }
+    setState(() => _isUpdating = false);
+  }
+
+  Future<void> _handleDelete() async {
+    final bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: context.colors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        title: Text(
+          'Hapus Pesanan',
+          style: GoogleFonts.plusJakartaSans(
+            fontWeight: FontWeight.w700,
+            color: context.colors.textDark,
+          ),
+        ),
+        content: Text(
+          'Apakah Anda yakin ingin menghapus riwayat pesanan #${widget.order.orderId} ini secara permanen?',
+          style: GoogleFonts.plusJakartaSans(color: context.colors.textGrey),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text('Batal', 
+              style: GoogleFonts.plusJakartaSans(
+                color: context.colors.textGrey,
+                fontWeight: FontWeight.w600,
+              )
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: context.colors.error,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: Text('Hapus', 
+              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700)
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    setState(() => _isUpdating = true);
+    final provider = context.read<OrderAdminProvider>();
+    final success = await provider.deleteOrder(widget.order.id);
+
+    if (!mounted) return;
+
+    if (success) {
+      PremiumSnackbar.showSuccess(null, "Pesanan berhasil dihapus");
+    } else {
+      PremiumSnackbar.showError(null, "Gagal menghapus pesanan. Silakan coba lagi");
+    }
+    setState(() => _isUpdating = false);
   }
 
   void _showDetail() {
@@ -456,13 +529,15 @@ class _OrderCardState extends State<_OrderCard> with SingleTickerProviderStateMi
   @override
   Widget build(BuildContext context) {
     final order = widget.order;
-    final bool canAct = !order.isCompleted;
+    final bool canAct = order.isPending || order.isProcessing;
 
     final String actionLabel = order.isPending
         ? 'Menerima'
         : order.isProcessing
             ? 'Selesaikan'
-            : 'Selesai ✓';
+            : order.isCancelled
+                ? 'Dibatalkan'
+                : 'Selesai ✓';
 
     return AnimatedBuilder(
       animation: _pulseAnimation,
@@ -473,18 +548,17 @@ class _OrderCardState extends State<_OrderCard> with SingleTickerProviderStateMi
         );
       },
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(48),
+          color: context.colors.surface, borderRadius: BorderRadius.circular(48),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 2,
-              offset: const Offset(0, 1),
+              offset: Offset(0, 1),
             ),
           ],
-          border: Border.all(color: AppColors.primaryOrange.withValues(alpha: 0.05)),
+          border: Border.all(color: context.colors.primaryOrange.withValues(alpha: 0.05)),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -498,17 +572,17 @@ class _OrderCardState extends State<_OrderCard> with SingleTickerProviderStateMi
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _buildStatusBadge(order.status),
+                      _buildStatusBadge(context, order.status),
                       Text(
                         order.timeAgo,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12,
-                          color: const Color(0xFF94A3B8),
+                          color: context.colors.textHint,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 6),
+                  SizedBox(height: 6),
 
                   // Nomor Order
                   Text(
@@ -516,7 +590,7 @@ class _OrderCardState extends State<_OrderCard> with SingleTickerProviderStateMi
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 18,
                       fontWeight: FontWeight.w500,
-                      color: const Color(0xFF0F172A),
+                      color: context.colors.textDark,
                       height: 22.5 / 18,
                     ),
                   ),
@@ -527,31 +601,31 @@ class _OrderCardState extends State<_OrderCard> with SingleTickerProviderStateMi
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: const Color(0xFF475569),
+                      color: context.colors.textGrey,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
 
                   // Total Harga
                   Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.bakery_dining_rounded,
-                        color: AppColors.primaryOrange,
+                        color: context.colors.primaryOrange,
                         size: 14,
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       Text(
                         order.formattedTotal,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF0F172A),
+                          color: context.colors.textDark,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
 
                   // Tombol Aksi + Detail
                   Row(
@@ -560,17 +634,19 @@ class _OrderCardState extends State<_OrderCard> with SingleTickerProviderStateMi
                         child: GestureDetector(
                           onTap: canAct && !_isUpdating ? _handleAction : null,
                           child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
+                            duration: Duration(milliseconds: 200),
                             height: 36,
                             decoration: BoxDecoration(
                               color: canAct
-                                  ? AppColors.primaryOrange
-                                  : const Color(0xFF10B981),
+                                  ? context.colors.primaryOrange
+                                  : order.isCancelled
+                                      ? context.colors.error
+                                      : Color(0xFF10B981),
                               borderRadius: BorderRadius.circular(9999),
                             ),
                             child: Center(
                               child: _isUpdating
-                                  ? const SizedBox(
+                                  ? SizedBox(
                                       height: 16,
                                       width: 16,
                                       child: CircularProgressIndicator(
@@ -590,14 +666,14 @@ class _OrderCardState extends State<_OrderCard> with SingleTickerProviderStateMi
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       GestureDetector(
                         onTap: _showDetail,
                         child: Container(
                           height: 36,
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          padding: EdgeInsets.symmetric(horizontal: 16),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF1F5F9),
+                            color: context.colors.divider,
                             borderRadius: BorderRadius.circular(9999),
                           ),
                           child: Center(
@@ -606,18 +682,39 @@ class _OrderCardState extends State<_OrderCard> with SingleTickerProviderStateMi
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
-                                color: const Color(0xFF475569),
+                                color: context.colors.textGrey,
                               ),
                             ),
                           ),
                         ),
                       ),
+                      if (order.isCompleted || order.isCancelled) ...[
+                        SizedBox(width: 8),
+                        GestureDetector(
+                          onTap: !_isUpdating ? _handleDelete : null,
+                          child: Container(
+                            height: 36,
+                            width: 36,
+                            decoration: BoxDecoration(
+                              color: context.colors.error.withValues(alpha: 0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Center(
+                              child: Icon(
+                                Icons.delete_outline_rounded,
+                                color: context.colors.error,
+                                size: 18,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: 12),
 
             // ─── Kanan: Gambar Produk ─────────────────────────────────────
             ClipRRect(
@@ -633,27 +730,31 @@ class _OrderCardState extends State<_OrderCard> with SingleTickerProviderStateMi
     );
   }
 
-  Widget _buildStatusBadge(String status) {
+  Widget _buildStatusBadge(BuildContext context, String status) {
     Color badgeColor;
     String badgeText;
 
     switch (status) {
       case 'processing':
-        badgeColor = const Color(0xFFF59E0B);
+        badgeColor = Color(0xFFF59E0B);
         badgeText = 'Pengolahan';
         break;
       case 'completed':
       case 'done':
-        badgeColor = AppColors.success;
+        badgeColor = context.colors.success;
         badgeText = 'Selesai';
         break;
+      case 'cancelled':
+        badgeColor = context.colors.textHint;
+        badgeText = 'Dibatalkan';
+        break;
       default: // pending
-        badgeColor = AppColors.error;
+        badgeColor = context.colors.error;
         badgeText = 'Tertunda';
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
         color: badgeColor,
         borderRadius: BorderRadius.circular(16),
@@ -687,7 +788,7 @@ class _OrderThumbnail extends StatelessWidget {
       width: 100,
       height: 130,
       decoration: BoxDecoration(
-        color: AppColors.primaryOrange.withValues(alpha: 0.08),
+        color: context.colors.primaryOrange.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(32),
       ),
       child: hasImage
@@ -702,7 +803,7 @@ class _OrderThumbnail extends StatelessWidget {
                     if (loadingProgress == null) return child;
                     return Center(
                       child: CircularProgressIndicator(
-                        color: AppColors.primaryOrange,
+                        color: context.colors.primaryOrange,
                         strokeWidth: 2,
                         value: loadingProgress.expectedTotalBytes != null
                             ? loadingProgress.cumulativeBytesLoaded /
@@ -711,7 +812,7 @@ class _OrderThumbnail extends StatelessWidget {
                       ),
                     );
                   },
-                  errorBuilder: (context, error, stackTrace) => _buildFallback(),
+                  errorBuilder: (context, error, stackTrace) => _buildFallback(context),
                 ),
                 // Badge jumlah item
                 Positioned(
@@ -720,7 +821,7 @@ class _OrderThumbnail extends StatelessWidget {
                   right: 0,
                   child: Center(
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.55),
                         borderRadius: BorderRadius.circular(9999),
@@ -738,22 +839,22 @@ class _OrderThumbnail extends StatelessWidget {
                 ),
               ],
             )
-          : _buildFallback(),
+          : _buildFallback(context),
     );
   }
 
-  Widget _buildFallback() {
+  Widget _buildFallback(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Icon(Icons.bakery_dining_rounded, color: AppColors.primaryOrange, size: 40),
-        const SizedBox(height: 8),
+        Icon(Icons.bakery_dining_rounded, color: context.colors.primaryOrange, size: 40),
+        SizedBox(height: 8),
         Text(
           '$itemCount Item',
           style: GoogleFonts.plusJakartaSans(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: AppColors.primaryOrange,
+            color: context.colors.primaryOrange,
           ),
         ),
       ],
@@ -780,17 +881,19 @@ class _OrderDetailSheetState extends State<_OrderDetailSheet> {
     final DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      firstDate: DateTime.now().subtract(const Duration(days: 365)),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
+      firstDate: DateTime.now().subtract(Duration(days: 365)),
+      lastDate: DateTime.now().add(Duration(days: 365)),
       helpText: 'Pilih Tanggal Pengambilan',
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: AppColors.primaryOrange,
+            colorScheme: Theme.of(context).colorScheme.copyWith(
+              primary: context.colors.primaryOrange,
               onPrimary: Colors.white,
-              onSurface: Color(0xFF0F172A),
+              onSurface: context.colors.textDark,
+              surface: context.colors.surface,
             ),
+            dialogBackgroundColor: context.colors.surface,
           ),
           child: child!,
         );
@@ -807,11 +910,13 @@ class _OrderDetailSheetState extends State<_OrderDetailSheet> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: AppColors.primaryOrange,
+            colorScheme: Theme.of(context).colorScheme.copyWith(
+              primary: context.colors.primaryOrange,
               onPrimary: Colors.white,
-              onSurface: Color(0xFF0F172A),
+              onSurface: context.colors.textDark,
+              surface: context.colors.surface,
             ),
+            dialogBackgroundColor: context.colors.surface,
           ),
           child: child!,
         );
@@ -840,7 +945,7 @@ class _OrderDetailSheetState extends State<_OrderDetailSheet> {
                 : '❌ Gagal menyimpan jadwal. Coba lagi.',
             style: GoogleFonts.plusJakartaSans(color: Colors.white),
           ),
-          backgroundColor: success ? AppColors.success : AppColors.error,
+          backgroundColor: success ? context.colors.success : context.colors.error,
         ),
       );
     }
@@ -863,26 +968,26 @@ class _OrderDetailSheetState extends State<_OrderDetailSheet> {
         minChildSize: 0.4,
         builder: (_, scrollController) {
           return Container(
-            decoration: const BoxDecoration(
-              color: Color(0xFFF8F7F6),
+            decoration: BoxDecoration(
+              color: context.colors.bgColor,
               borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
             ),
             child: Column(
               children: [
                 // Handle
                 Container(
-                  margin: const EdgeInsets.only(top: 12, bottom: 8),
+                  margin: EdgeInsets.only(top: 12, bottom: 8),
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE2E8F0),
+                    color: context.colors.divider,
                     borderRadius: BorderRadius.circular(9999),
                   ),
                 ),
 
                 // Judul
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 4),
                   child: Row(
                     children: [
                       Expanded(
@@ -891,63 +996,62 @@ class _OrderDetailSheetState extends State<_OrderDetailSheet> {
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
-                            color: const Color(0xFF0F172A),
+                            color: context.colors.textDark,
                           ),
                         ),
                       ),
                       GestureDetector(
                         onTap: () => Navigator.pop(context),
                         child: Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFF1F5F9),
+                          padding: EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: context.colors.divider,
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.close_rounded, size: 18, color: Color(0xFF64748B)),
+                          child: Icon(Icons.close_rounded, size: 18, color: context.colors.textGrey),
                         ),
                       ),
                     ],
                   ),
                 ),
 
-                const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                Divider(height: 1, color: context.colors.divider),
 
                 Expanded(
                   child: ListView(
                     controller: scrollController,
-                    padding: const EdgeInsets.all(20),
+                    padding: EdgeInsets.all(20),
                     children: [
                       // INFO PELANGGAN
-                      _buildSection('Informasi Pelanggan', [
-                        _buildInfoRow(Icons.person_rounded, 'Nama', latestOrder.guestName),
-                        _buildInfoRow(Icons.phone_rounded, 'Telepon', latestOrder.guestPhone),
-                        _buildInfoRow(Icons.location_on_rounded, 'Alamat/Metode', latestOrder.guestAddress),
+                      _buildSection(context, 'Informasi Pelanggan', [
+                        _buildInfoRow(context, Icons.person_rounded, 'Nama', latestOrder.guestName),
+                        _buildInfoRow(context, Icons.phone_rounded, 'Telepon', latestOrder.guestPhone),
+                        _buildInfoRow(context, Icons.location_on_rounded, 'Alamat/Metode', latestOrder.guestAddress),
                       ]),
 
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
 
                       // JAM PENGAMBILAN (Admin mengatur)
-                      _buildPickupTimeSection(latestOrder),
+                      _buildPickupTimeSection(context, latestOrder),
 
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
 
                       // ITEM PESANAN
-                      _buildSection(
+                      _buildSection(context, 
                         'Item Pesanan (${latestOrder.items.length} produk)',
                         latestOrder.items.isEmpty
-                            ? [_buildInfoRow(Icons.info_outline_rounded, 'Catatan', 'Detail item tidak tersedia')]
-                            : latestOrder.items.map((item) => _buildItemRow(item)).toList(),
+                            ? [_buildInfoRow(context, Icons.info_outline_rounded, 'Catatan', 'Detail item tidak tersedia')]
+                            : latestOrder.items.map((item) => _buildItemRow(context, item)).toList(),
                       ),
 
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
 
                       // TOTAL
                       Container(
-                        padding: const EdgeInsets.all(16),
+                        padding: EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(24),
-                          border: Border.all(color: AppColors.primaryOrange.withValues(alpha: 0.15)),
+                          color: context.colors.surface, borderRadius: BorderRadius.circular(24),
+                          border: Border.all(color: context.colors.primaryOrange.withValues(alpha: 0.15)),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -957,7 +1061,7 @@ class _OrderDetailSheetState extends State<_OrderDetailSheet> {
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
-                                color: const Color(0xFF475569),
+                                color: context.colors.textGrey,
                               ),
                             ),
                             Text(
@@ -965,7 +1069,7 @@ class _OrderDetailSheetState extends State<_OrderDetailSheet> {
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w700,
-                                color: AppColors.primaryOrange,
+                                color: context.colors.primaryOrange,
                               ),
                             ),
                           ],
@@ -983,16 +1087,15 @@ class _OrderDetailSheetState extends State<_OrderDetailSheet> {
   }
 
   /// Widget section jam pengambilan (bisa diklik admin untuk ubah)
-  Widget _buildPickupTimeSection(OrderModel order) {
+  Widget _buildPickupTimeSection(BuildContext context, OrderModel order) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        color: context.colors.surface, borderRadius: BorderRadius.circular(24),
         border: Border.all(
           color: order.hasPickupTime
-              ? AppColors.primaryOrange.withValues(alpha: 0.30)
-              : const Color(0xFFE2E8F0),
+              ? context.colors.primaryOrange.withValues(alpha: 0.30)
+              : context.colors.divider,
         ),
       ),
       child: Row(
@@ -1001,16 +1104,16 @@ class _OrderDetailSheetState extends State<_OrderDetailSheet> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppColors.primaryOrange.withValues(alpha: 0.10),
+              color: context.colors.primaryOrange.withValues(alpha: 0.10),
               shape: BoxShape.circle,
             ),
-            child: const Icon(
+            child: Icon(
               Icons.access_time_rounded,
-              color: AppColors.primaryOrange,
+              color: context.colors.primaryOrange,
               size: 20,
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1020,18 +1123,18 @@ class _OrderDetailSheetState extends State<_OrderDetailSheet> {
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF64748B),
+                    color: context.colors.textGrey,
                   ),
                 ),
-                const SizedBox(height: 2),
+                SizedBox(height: 2),
                 Text(
                   order.hasPickupTime ? order.pickupTime! : 'Belum ditentukan',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                     color: order.hasPickupTime
-                        ? AppColors.primaryOrange
-                        : const Color(0xFF94A3B8),
+                        ? context.colors.primaryOrange
+                        : context.colors.textHint,
                   ),
                 ),
               ],
@@ -1041,17 +1144,17 @@ class _OrderDetailSheetState extends State<_OrderDetailSheet> {
           GestureDetector(
             onTap: _isSavingTime ? null : _pickDateTime,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
-                color: AppColors.primaryOrange.withValues(alpha: 0.10),
+                color: context.colors.primaryOrange.withValues(alpha: 0.10),
                 borderRadius: BorderRadius.circular(9999),
               ),
               child: _isSavingTime
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 16,
                       height: 16,
                       child: CircularProgressIndicator(
-                        color: AppColors.primaryOrange,
+                        color: context.colors.primaryOrange,
                         strokeWidth: 2,
                       ),
                     )
@@ -1060,7 +1163,7 @@ class _OrderDetailSheetState extends State<_OrderDetailSheet> {
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.primaryOrange,
+                        color: context.colors.primaryOrange,
                       ),
                     ),
             ),
@@ -1070,13 +1173,12 @@ class _OrderDetailSheetState extends State<_OrderDetailSheet> {
     );
   }
 
-  Widget _buildSection(String title, List<Widget> children) {
+  Widget _buildSection(BuildContext context, String title, List<Widget> children) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.primaryOrange.withValues(alpha: 0.05)),
+        color: context.colors.surface, borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: context.colors.primaryOrange.withValues(alpha: 0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1086,24 +1188,24 @@ class _OrderDetailSheetState extends State<_OrderDetailSheet> {
             style: GoogleFonts.plusJakartaSans(
               fontSize: 13,
               fontWeight: FontWeight.w700,
-              color: const Color(0xFF0F172A),
+              color: context.colors.textDark,
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           ...children,
         ],
       ),
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value) {
+  Widget _buildInfoRow(BuildContext context, IconData icon, String label, String value) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: EdgeInsets.only(bottom: 10),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: AppColors.primaryOrange, size: 16),
-          const SizedBox(width: 10),
+          Icon(icon, color: context.colors.primaryOrange, size: 16),
+          SizedBox(width: 10),
           Expanded(
             child: RichText(
               text: TextSpan(
@@ -1113,14 +1215,14 @@ class _OrderDetailSheetState extends State<_OrderDetailSheet> {
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF475569),
+                      color: context.colors.textGrey,
                     ),
                   ),
                   TextSpan(
                     text: value,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 13,
-                      color: const Color(0xFF64748B),
+                      color: context.colors.textGrey,
                     ),
                   ),
                 ],
@@ -1132,25 +1234,25 @@ class _OrderDetailSheetState extends State<_OrderDetailSheet> {
     );
   }
 
-  Widget _buildItemRow(OrderItemModel item) {
+  Widget _buildItemRow(BuildContext context, OrderItemModel item) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: EdgeInsets.only(bottom: 10),
       child: Row(
         children: [
           Container(
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: AppColors.primaryOrange.withValues(alpha: 0.10),
+              color: context.colors.primaryOrange.withValues(alpha: 0.10),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.bakery_dining_rounded,
-              color: AppColors.primaryOrange,
+              color: context.colors.primaryOrange,
               size: 18,
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1162,14 +1264,14 @@ class _OrderDetailSheetState extends State<_OrderDetailSheet> {
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF0F172A),
+                    color: context.colors.textDark,
                   ),
                 ),
                 Text(
                   '${item.quantity}x  •  Rp. ${item.price.toInt()}',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 12,
-                    color: const Color(0xFF64748B),
+                    color: context.colors.textGrey,
                   ),
                 ),
               ],
@@ -1180,7 +1282,7 @@ class _OrderDetailSheetState extends State<_OrderDetailSheet> {
             style: GoogleFonts.plusJakartaSans(
               fontSize: 13,
               fontWeight: FontWeight.w700,
-              color: const Color(0xFF0F172A),
+              color: context.colors.textDark,
             ),
           ),
         ],

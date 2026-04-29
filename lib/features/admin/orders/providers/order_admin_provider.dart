@@ -41,6 +41,8 @@ class OrderAdminProvider extends ChangeNotifier {
         return _allOrders.where((o) => o.isProcessing).toList();
       case 2:
         return _allOrders.where((o) => o.isCompleted).toList();
+      case 3:
+        return _allOrders.where((o) => o.isCancelled).toList();
       default:
         return [];
     }
@@ -50,6 +52,7 @@ class OrderAdminProvider extends ChangeNotifier {
   int get pendingCount => _allOrders.where((o) => o.isPending).length;
   int get processingCount => _allOrders.where((o) => o.isProcessing).length;
   int get completedCount => _allOrders.where((o) => o.isCompleted).length;
+  int get cancelledCount => _allOrders.where((o) => o.isCancelled).length;
 
   // --- HEADER BUILD ---
   Map<String, String> get _authHeaders => {
@@ -72,7 +75,7 @@ class OrderAdminProvider extends ChangeNotifier {
     _authToken = token;
     fetchOrders(); // Ambil data pertama kali langsung
     _pollingTimer?.cancel();
-    _pollingTimer = Timer.periodic(const Duration(seconds: 10), (_) {
+    _pollingTimer = Timer.periodic(Duration(seconds: 10), (_) {
       fetchOrders(silent: true); // Refresh diam-diam tanpa tampilkan loading
     });
   }
@@ -95,7 +98,7 @@ class OrderAdminProvider extends ChangeNotifier {
       final response = await http.get(
         Uri.parse(ApiService.adminOrders),  // ✅ /api/admin/orders bukan /api/orders
         headers: _authHeaders,
-      ).timeout(const Duration(seconds: 15));
+      ).timeout(Duration(seconds: 15));
 
       if (response.statusCode == 200) {
         final dynamic decoded = jsonDecode(response.body);
@@ -142,10 +145,29 @@ class OrderAdminProvider extends ChangeNotifier {
         Uri.parse(ApiService.adminOrderById(orderId)),
         headers: _authHeaders,
         body: jsonEncode({"status": newStatus}),
-      ).timeout(const Duration(seconds: 15));
+      ).timeout(Duration(seconds: 15));
 
       if (response.statusCode == 200) {
         _updateLocalOrder(orderId, status: newStatus);
+        return true;
+      }
+      return false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Hapus pesanan secara permanen (admin only)
+  Future<bool> deleteOrder(int orderId) async {
+    try {
+      final response = await http.delete(
+        Uri.parse(ApiService.adminOrderById(orderId)),
+        headers: _authHeaders,
+      ).timeout(Duration(seconds: 15));
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        _allOrders.removeWhere((o) => o.id == orderId);
+        notifyListeners();
         return true;
       }
       return false;
@@ -161,7 +183,7 @@ class OrderAdminProvider extends ChangeNotifier {
         Uri.parse(ApiService.adminOrderById(orderId)),
         headers: _authHeaders,
         body: jsonEncode({"pickup_time": pickupTime}),
-      ).timeout(const Duration(seconds: 15));
+      ).timeout(Duration(seconds: 15));
 
       if (response.statusCode == 200) {
         _updateLocalOrder(orderId, pickupTime: pickupTime);
