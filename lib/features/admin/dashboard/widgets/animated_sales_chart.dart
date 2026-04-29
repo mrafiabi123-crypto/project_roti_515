@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:provider/provider.dart';
-import '../../../../core/constants/app_colors.dart';
 import '../providers/admin_stats_provider.dart';
+import 'package:roti_515/core/theme/app_theme.dart';
 
 class AnimatedSalesChart extends StatefulWidget {
   const AnimatedSalesChart({super.key});
@@ -17,7 +17,7 @@ class AnimatedSalesChart extends StatefulWidget {
 class _AnimatedSalesChartState extends State<AnimatedSalesChart> {
   // Helper untuk memformat bulan ke bahasa Indonesia
   String _formatMonth(int month) {
-    const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+    final months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
     return months[month - 1];
   }
 
@@ -70,11 +70,11 @@ class _AnimatedSalesChartState extends State<AnimatedSalesChart> {
     final chartMaxY = (maxRevenue * 1.2).clamp(5.0, double.infinity);
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: context.colors.white,
         borderRadius: BorderRadius.circular(48),
-        border: Border.all(color: AppColors.primaryOrange.withValues(alpha: 0.05)),
+        border: Border.all(color: context.colors.primaryOrange.withValues(alpha: 0.05)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
@@ -97,7 +97,7 @@ class _AnimatedSalesChartState extends State<AnimatedSalesChart> {
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
-                      color: AppColors.textGrey,
+                      color: context.colors.textGrey,
                     ),
                   ),
                   Text(
@@ -107,27 +107,27 @@ class _AnimatedSalesChartState extends State<AnimatedSalesChart> {
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textDark,
+                      color: context.colors.textDark,
                     ),
                   ),
                 ],
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFECFDF5),
+                  color: context.colors.success.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(9999),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.arrow_upward_rounded, color: AppColors.success, size: 12),
-                    const SizedBox(width: 4),
+                    Icon(Icons.arrow_upward_rounded, color: context.colors.success, size: 12),
+                    SizedBox(width: 4),
                     Text(
                       statsProvider.stats['sales_growth'] ?? "0%",
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.success,
+                        color: context.colors.success,
                       ),
                     ),
                   ],
@@ -135,7 +135,7 @@ class _AnimatedSalesChartState extends State<AnimatedSalesChart> {
               )
             ],
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
 
           // Interaktif Drag/Scroll Chart dengan Animasi Naik
           SizedBox(
@@ -153,12 +153,12 @@ class _AnimatedSalesChartState extends State<AnimatedSalesChart> {
                 scrollDirection: Axis.horizontal,
                 reverse: true, // Mulai dari sisi paling kanan (data hari ini)
                 controller: ScrollController(),
-                physics: const BouncingScrollPhysics(),
+                physics: BouncingScrollPhysics(),
                 child: SizedBox(
                    width: (days.length * 60).clamp(350, 2000).toDouble(), 
                   child: TweenAnimationBuilder<double>(
                     tween: Tween<double>(begin: 0.0, end: 1.0),
-                    duration: const Duration(milliseconds: 1500),
+                    duration: Duration(milliseconds: 1500),
                     curve: Curves.elasticOut, 
                     builder: (context, animValue, child) {
                       final animatedSpots = spots.map((spot) {
@@ -170,8 +170,8 @@ class _AnimatedSalesChartState extends State<AnimatedSalesChart> {
                           lineTouchData: LineTouchData(
                             handleBuiltInTouches: true,
                             touchTooltipData: LineTouchTooltipData(
-                              getTooltipColor: (_) => AppColors.primaryOrange,
-                              tooltipPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              getTooltipColor: (_) => context.colors.primaryOrange,
+                              tooltipPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                               getTooltipItems: (List<LineBarSpot> touchedSpots) {
                                 return touchedSpots.map((spot) {
                                   final rawDate = rawDailyStats.isNotEmpty ? rawDailyStats[spot.x.toInt()]['date'] : "-";
@@ -197,13 +197,13 @@ class _AnimatedSalesChartState extends State<AnimatedSalesChart> {
                               },
                             ),
                           ),
-                          gridData: const FlGridData(show: false),
+                          gridData: FlGridData(show: false),
                           borderData: FlBorderData(show: false),
                           titlesData: FlTitlesData(
                             show: true,
-                            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                            leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                            rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                            topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                            leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
                             bottomTitles: AxisTitles(
                               sideTitles: SideTitles(
                                 showTitles: true,
@@ -212,18 +212,18 @@ class _AnimatedSalesChartState extends State<AnimatedSalesChart> {
                                 getTitlesWidget: (value, meta) {
                                   if (value.toInt() >= 0 && value.toInt() < days.length) {
                                     return Padding(
-                                      padding: const EdgeInsets.only(top: 8.0),
+                                      padding: EdgeInsets.only(top: 8.0),
                                       child: Text(
                                         days[value.toInt()],
                                         style: GoogleFonts.plusJakartaSans(
                                           fontSize: 10,
                                           fontWeight: FontWeight.w600,
-                                          color: AppColors.textHint,
+                                          color: context.colors.textHint,
                                         ),
                                       ),
                                     );
                                   }
-                                  return const SizedBox.shrink();
+                                  return SizedBox.shrink();
                                 },
                               ),
                             ),
@@ -233,7 +233,7 @@ class _AnimatedSalesChartState extends State<AnimatedSalesChart> {
                               spots: animatedSpots,
                               isCurved: true,
                               curveSmoothness: 0.35,
-                              color: AppColors.primaryOrange,
+                              color: context.colors.primaryOrange,
                               barWidth: 3.5,
                               isStrokeCapRound: true,
                               dotData: FlDotData(
@@ -243,7 +243,7 @@ class _AnimatedSalesChartState extends State<AnimatedSalesChart> {
                                     radius: 4,
                                     color: Colors.white,
                                     strokeWidth: 2,
-                                    strokeColor: AppColors.primaryOrange,
+                                    strokeColor: context.colors.primaryOrange,
                                   );
                                 },
                               ),
@@ -253,8 +253,8 @@ class _AnimatedSalesChartState extends State<AnimatedSalesChart> {
                                   begin: Alignment.topCenter,
                                   end: Alignment.bottomCenter,
                                   colors: [
-                                    AppColors.primaryOrange.withValues(alpha: 0.4),
-                                    AppColors.primaryOrange.withValues(alpha: 0.0),
+                                    context.colors.primaryOrange.withValues(alpha: 0.4),
+                                    context.colors.primaryOrange.withValues(alpha: 0.0),
                                   ],
                                 ),
                               ),
@@ -265,7 +265,7 @@ class _AnimatedSalesChartState extends State<AnimatedSalesChart> {
                           minY: 0,
                           maxY: chartMaxY, 
                         ),
-                        duration: const Duration(milliseconds: 0), 
+                        duration: Duration(milliseconds: 0), 
                       );
                     },
                   ),

@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../../../routes/app_routes.dart';
+
 import '../../../auth/providers/auth_provider.dart';
 import '../providers/admin_stats_provider.dart';
 import '../widgets/animated_sales_chart.dart';
+import '../../profile/screens/admin_profile_screen.dart';
+import 'package:roti_515/core/theme/theme_provider.dart';
+import 'package:roti_515/core/theme/app_theme.dart';
+import 'package:roti_515/core/network/api_service.dart';
 
 class DashboardAdminScreen extends StatefulWidget {
   const DashboardAdminScreen({super.key});
@@ -31,36 +34,6 @@ class _DashboardAdminScreenState extends State<DashboardAdminScreen> {
   }
 
   // Fungsi Logout
-  void _logout() {
-    // Memanggil provider untuk menghapus session token
-    Provider.of<AuthProvider>(context, listen: false).logout();
-    // Kembali ke halaman Login dan hapus semua history navigasi
-    Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (route) => false);
-  }
-
-  // Menampilkan Dialog Konfirmasi Logout
-  void _showLogoutDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text("Konfirmasi Logout", style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold)),
-        content: Text("Apakah Anda yakin ingin keluar?", style: GoogleFonts.plusJakartaSans()),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text("Batal", style: GoogleFonts.plusJakartaSans(color: Colors.grey)),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _logout();
-            },
-            child: Text("Keluar", style: GoogleFonts.plusJakartaSans(color: AppColors.error)),
-          ),
-        ],
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,12 +41,12 @@ class _DashboardAdminScreenState extends State<DashboardAdminScreen> {
     final stats = statsProvider.stats;
 
     return Scaffold(
-      backgroundColor: AppColors.bgColor,
+      backgroundColor: context.colors.bgColor,
       appBar: _buildAppBar(),
       body: statsProvider.isLoading 
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primaryOrange))
+          ? Center(child: CircularProgressIndicator(color: context.colors.primaryOrange))
           : SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -81,19 +54,19 @@ class _DashboardAdminScreenState extends State<DashboardAdminScreen> {
                   Row(
                     children: [
                       Expanded(child: _buildStatCard("Total Penjualan", "Rp. ${stats['total_sales']}", stats['sales_growth'], Icons.payments_rounded)),
-                      const SizedBox(width: 12),
+                      SizedBox(width: 12),
                       Expanded(child: _buildStatCard("Total Order", "${stats['total_orders']}", stats['orders_growth'], Icons.shopping_basket_rounded)),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   _buildStatCard("Pengguna Baru", "${stats['total_users']}", stats['users_growth'], Icons.person_add_rounded, isFullWidth: true),
 
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
 
             // --- SALES CHART ---
             _buildSalesChart(),
 
-            const SizedBox(height: 32),
+            SizedBox(height: 32),
 
             // --- RECENT ACTIVITIES ---
             Text(
@@ -101,56 +74,79 @@ class _DashboardAdminScreenState extends State<DashboardAdminScreen> {
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 18, 
                 fontWeight: FontWeight.bold, 
-                color: AppColors.textDark
+                color: context.colors.textDark
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             _buildActivityItem("New Order #8921", "2 menit lalu • Rp: 26.000", Icons.receipt_long_rounded),
             _buildActivityItem("Pelanggan Baru Terdaftar", "1 jam lalu • Sarah J.", Icons.person_add_alt_1_rounded),
             
-            const SizedBox(height: 100), // Spasi aman untuk Bottom Nav
-          ],
-        ),
-      ),
+                  ],
+                ),
+              ),
     );
   }
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: AppColors.bgColor,
+      backgroundColor: context.colors.bgColor,
       elevation: 0,
       centerTitle: false,
+      automaticallyImplyLeading: false,
       title: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppColors.primaryOrange.withValues(alpha: 0.1), 
+              color: context.colors.primaryOrange.withValues(alpha: 0.1), 
               borderRadius: BorderRadius.circular(16)
             ),
-            child: const Icon(Icons.bakery_dining_rounded, color: AppColors.primaryOrange, size: 22),
+            child: Icon(Icons.bakery_dining_rounded, color: context.colors.primaryOrange, size: 22),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("roti515", style: GoogleFonts.plusJakartaSans(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textDark)),
-              Text("Portal Admin", style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.primaryOrange)),
+              Text("roti515", style: GoogleFonts.plusJakartaSans(fontSize: 20, fontWeight: FontWeight.bold, color: context.colors.textDark)),
+              Text("Portal Admin", style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w500, color: context.colors.primaryOrange)),
             ],
           ),
         ],
       ),
       actions: [
-        IconButton(
-          onPressed: _showLogoutDialog,
-          icon: const Icon(Icons.logout_rounded, color: AppColors.error),
-          tooltip: "Logout",
+        Consumer<ThemeProvider>(
+          builder: (context, theme, _) => IconButton(
+            icon: Icon(
+              theme.isDarkMode ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+              color: context.colors.textDark,
+            ),
+            onPressed: () => theme.toggleTheme(!theme.isDarkMode),
+          ),
         ),
         Padding(
-          padding: const EdgeInsets.only(right: 16),
-          child: CircleAvatar(
-            backgroundColor: AppColors.primaryOrange.withValues(alpha: 0.1),
-            child: const Icon(Icons.account_circle_outlined, color: AppColors.primaryOrange),
+          padding: EdgeInsets.only(right: 16),
+          child: GestureDetector(
+            onTap: () {
+              Navigator.push(context,
+                MaterialPageRoute(builder: (context) => AdminProfileScreen()),
+              );
+            },
+            child: Consumer<AuthProvider>(
+              builder: (context, auth, _) {
+                final photoUrl = auth.photoUrl;
+                final fullImageUrl = ApiService.getDisplayImage(photoUrl);
+                
+                return CircleAvatar(
+                  backgroundColor: context.colors.primaryOrange.withValues(alpha: 0.1),
+                  backgroundImage: fullImageUrl.isNotEmpty
+                      ? NetworkImage(fullImageUrl)
+                      : null,
+                  child: fullImageUrl.isEmpty
+                      ? Icon(Icons.account_circle_outlined, color: context.colors.primaryOrange)
+                      : null,
+                );
+              },
+            ),
           ),
         )
       ],
@@ -159,42 +155,42 @@ class _DashboardAdminScreenState extends State<DashboardAdminScreen> {
 
   Widget _buildStatCard(String title, String value, String percent, IconData icon, {bool isFullWidth = false}) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: context.colors.white,
         borderRadius: BorderRadius.circular(32), 
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 4, offset: const Offset(0, 1))],
-        border: Border.all(color: AppColors.primaryOrange.withValues(alpha: 0.05)),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 4, offset: Offset(0, 1))],
+        border: Border.all(color: context.colors.primaryOrange.withValues(alpha: 0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, color: AppColors.primaryOrange, size: 16),
-              const SizedBox(width: 8),
+              Icon(icon, color: context.colors.primaryOrange, size: 16),
+              SizedBox(width: 8),
               Expanded(
                 child: Text(
                   title, 
-                  style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textGrey),
+                  style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w500, color: context.colors.textGrey),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           FittedBox(
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
-            child: Text(value, style: GoogleFonts.plusJakartaSans(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+            child: Text(value, style: GoogleFonts.plusJakartaSans(fontSize: 24, fontWeight: FontWeight.bold, color: context.colors.textDark)),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Row(
             children: [
-              const Icon(Icons.trending_up_rounded, color: AppColors.success, size: 14),
-              const SizedBox(width: 4),
-              Text(percent, style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.success)),
+              Icon(Icons.trending_up_rounded, color: context.colors.success, size: 14),
+              SizedBox(width: 4),
+              Text(percent, style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: context.colors.success)),
             ],
           ),
         ],
@@ -203,39 +199,39 @@ class _DashboardAdminScreenState extends State<DashboardAdminScreen> {
   }
 
   Widget _buildSalesChart() {
-    return const AnimatedSalesChart();
+    return AnimatedSalesChart();
   }
 
   Widget _buildActivityItem(String title, String subtitle, IconData icon) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
+      margin: EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: context.colors.white,
         borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: AppColors.primaryOrange.withValues(alpha: 0.05)),
+        border: Border.all(color: context.colors.primaryOrange.withValues(alpha: 0.05)),
       ),
       child: Row(
         children: [
           Container(
             width: 44, height: 44,
-            decoration: BoxDecoration(color: AppColors.primaryOrange.withValues(alpha: 0.1), shape: BoxShape.circle),
-            child: Icon(icon, color: AppColors.primaryOrange, size: 20),
+            decoration: BoxDecoration(color: context.colors.primaryOrange.withValues(alpha: 0.1), shape: BoxShape.circle),
+            child: Icon(icon, color: context.colors.primaryOrange, size: 20),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textDark)),
-                Text(subtitle, style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.textGrey)),
+                Text(title, style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w600, color: context.colors.textDark)),
+                Text(subtitle, style: GoogleFonts.plusJakartaSans(fontSize: 12, color: context.colors.textGrey)),
               ],
             ),
           ),
-          const Icon(Icons.chevron_right_rounded, color: AppColors.textHint),
+          Icon(Icons.chevron_right_rounded, color: context.colors.textHint),
         ],
       ),
     );
   }
 }
-
+

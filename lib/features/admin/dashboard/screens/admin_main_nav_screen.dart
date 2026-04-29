@@ -2,11 +2,11 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../../core/constants/app_colors.dart';
 import 'dashboard_admin_screen.dart';
 import '../../product_admin/screens/product_admin_screen.dart';
 import '../../orders/screens/order_admin_screen.dart';
 import '../../users/screens/user_admin_screen.dart';
+import 'package:roti_515/core/theme/app_theme.dart';
 
 class AdminMainNavScreen extends StatefulWidget {
   const AdminMainNavScreen({super.key});
@@ -20,16 +20,16 @@ class _AdminMainNavScreenState extends State<AdminMainNavScreen> {
 
   // Daftar Halaman
   final List<Widget> _screens = [
-    const DashboardAdminScreen(),
-    const ProductAdminScreen(),
-    const OrderAdminScreen(),
-    const UserAdminScreen(),
+    DashboardAdminScreen(),
+    ProductAdminScreen(),
+    OrderAdminScreen(),
+    UserAdminScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bgColor,
+      backgroundColor: context.colors.bgColor,
       body: IndexedStack(
         index: _selectedIndex,
         children: _screens,
@@ -49,10 +49,10 @@ class _AdminMainNavScreenState extends State<AdminMainNavScreen> {
           // agar Row bisa menggunakan seluruh ruang secara simetris
           height: 80, 
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.90),
+            color: context.colors.surface.withValues(alpha: 0.90),
             border: Border(
               top: BorderSide(
-                color: AppColors.primaryOrange.withValues(alpha: 0.15), 
+                color: context.colors.primaryOrange.withValues(alpha: 0.15), 
                 width: 1,
               ),
             ),
@@ -75,7 +75,7 @@ class _AdminMainNavScreenState extends State<AdminMainNavScreen> {
   // --- ITEM NAVBAR ---
   Widget _buildNavItem(int index, IconData icon, String label) {
     bool isSelected = _selectedIndex == index;
-    Color color = isSelected ? AppColors.primaryOrange : const Color(0xFF94A3B8);
+    Color color = isSelected ? context.colors.primaryOrange : context.colors.textGrey;
 
     return Expanded(
       child: GestureDetector(
@@ -88,12 +88,12 @@ class _AdminMainNavScreenState extends State<AdminMainNavScreen> {
           children: [
             // Ikon dibuat sedikit lebih kecil (22) agar terlihat lebih elegan dan simetris
             AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
+              duration: Duration(milliseconds: 200),
               curve: Curves.easeOut,
               transform: Matrix4.diagonal3Values(isSelected ? 1.05 : 1.0, isSelected ? 1.05 : 1.0, 1.0),
               child: Icon(icon, color: color, size: 22), 
             ),
-            const SizedBox(height: 6), // Jarak antar ikon dan teks yang konsisten
+            SizedBox(height: 6), // Jarak antar ikon dan teks yang konsisten
             Text(
               label.toUpperCase(),
               style: GoogleFonts.plusJakartaSans(

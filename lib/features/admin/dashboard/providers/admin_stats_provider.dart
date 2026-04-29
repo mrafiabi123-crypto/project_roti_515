@@ -18,13 +18,17 @@ class AdminStatsProvider extends ChangeNotifier {
   bool _isLoading = true;
   Timer? _pollingTimer;
 
+  // Token disimpan agar refreshNow() bisa digunakan tanpa passing token
+  String? _cachedToken;
+
   Map<String, dynamic> get stats => _stats;
   bool get isLoading => _isLoading;
 
   void startPolling(String? token) {
+    _cachedToken = token;
     fetchStats(token);
     _pollingTimer?.cancel();
-    _pollingTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+    _pollingTimer = Timer.periodic(Duration(seconds: 30), (_) {
       fetchStats(token, silent: true);
     });
   }
@@ -32,6 +36,11 @@ class AdminStatsProvider extends ChangeNotifier {
   void stopPolling() {
     _pollingTimer?.cancel();
     _pollingTimer = null;
+  }
+
+  /// Refresh statistik secara langsung (dipanggil setelah admin selesaikan order)
+  Future<void> refreshNow() async {
+    await fetchStats(_cachedToken, silent: true);
   }
 
   Future<void> fetchStats(String? token, {bool silent = false}) async {
@@ -51,13 +60,19 @@ class AdminStatsProvider extends ChangeNotifier {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+
+        // Ambil growth dari backend jika tersedia, fallback ke '+0%'
+        final String salesGrowth = _parseGrowth(data['sales_growth']);
+        final String ordersGrowth = _parseGrowth(data['orders_growth']);
+        final String usersGrowth = _parseGrowth(data['users_growth']);
+
         _stats = {
-          "total_sales": data['total_revenue'] ?? 0,
-          "total_orders": data['total_orders'] ?? 0,
+          "total_sales": data['revenue'] ?? data['total_revenue'] ?? 0,
+          "total_orders": data['total_order'] ?? data['total_orders'] ?? 0,
           "total_users": data['new_users'] ?? 0,
-          "sales_growth": "+12%", // Fallback growth stats if not provided by API
-          "orders_growth": "+5%",
-          "users_growth": "+18%",
+          "sales_growth": salesGrowth,
+          "orders_growth": ordersGrowth,
+          "users_growth": usersGrowth,
           "daily_stats": data['daily_stats'] ?? [],
         };
       }
@@ -67,6 +82,21 @@ class AdminStatsProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  /// Parsing nilai growth dari API — bisa berupa String atau angka
+  String _parseGrowth(dynamic raw) {
+    if (raw == null) return '+0%';
+    if (raw is String) {
+      // Pastikan diawali '+' jika positif
+      if (raw.startsWith('+') || raw.startsWith('-')) return raw;
+      return '+$raw';
+    }
+    if (raw is num) {
+      final sign = raw >= 0 ? '+' : '';
+      return '$sign${raw.toStringAsFixed(0)}%';
+    }
+    return '+0%';
   }
 
   @override
