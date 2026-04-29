@@ -74,7 +74,7 @@ class UserAdminProvider extends ChangeNotifier {
           "Content-Type": "application/json",
           if (_authToken != null) "Authorization": "Bearer $_authToken",
         },
-      ).timeout(const Duration(seconds: 15));
+      ).timeout(Duration(seconds: 15));
 
       if (response.statusCode == 200) {
         final dynamic decoded = jsonDecode(response.body);

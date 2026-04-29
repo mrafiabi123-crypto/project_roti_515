@@ -3,10 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../core/constants/app_colors.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../auth/models/user_model.dart';
 import '../providers/user_admin_provider.dart';
+import '../../profile/screens/admin_profile_screen.dart';
+import 'package:roti_515/core/theme/theme_provider.dart';
+import 'package:roti_515/core/theme/app_theme.dart';
+import 'package:roti_515/core/network/api_service.dart';
 
 class UserAdminScreen extends StatefulWidget {
   const UserAdminScreen({super.key});
@@ -46,14 +49,14 @@ class _UserAdminScreenState extends State<UserAdminScreen> {
     final provider = context.watch<UserAdminProvider>();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F7F6),
+      backgroundColor: context.colors.bgColor,
       appBar: _buildAppBar(),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header "Manajemen Pengguna"
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+            padding: EdgeInsets.fromLTRB(16, 8, 16, 12),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.end,
@@ -64,7 +67,7 @@ class _UserAdminScreenState extends State<UserAdminScreen> {
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFF0F172A),
+                      color: context.colors.textDark,
                     ),
                   ),
                 ),
@@ -73,7 +76,7 @@ class _UserAdminScreenState extends State<UserAdminScreen> {
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 12,
                     fontWeight: FontWeight.w400,
-                    color: const Color(0xFF64748B),
+                    color: context.colors.textGrey,
                   ),
                 ),
               ],
@@ -82,39 +85,38 @@ class _UserAdminScreenState extends State<UserAdminScreen> {
 
           // Search Bar
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: EdgeInsets.symmetric(horizontal: 16),
             child: Container(
               height: 48,
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(48),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+                color: context.colors.surface, borderRadius: BorderRadius.circular(48),
+                border: Border.all(color: context.colors.divider),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 2,
-                    offset: const Offset(0, 1),
+                    offset: Offset(0, 1),
                   ),
                 ],
               ),
               child: Row(
                 children: [
-                  const SizedBox(width: 16),
-                  const Icon(Icons.search_rounded, color: Color(0xFF94A3B8), size: 18),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 16),
+                  Icon(Icons.search_rounded, color: context.colors.textHint, size: 18),
+                  SizedBox(width: 12),
                   Expanded(
                     child: TextField(
                       controller: _searchController,
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 14,
-                        color: const Color(0xFF0F172A),
+                        color: context.colors.textDark,
                       ),
                       decoration: InputDecoration(
                         border: InputBorder.none,
                         hintText: 'Cari berdasarkan nama atau email',
                         hintStyle: GoogleFonts.plusJakartaSans(
                           fontSize: 14,
-                          color: const Color(0xFF94A3B8),
+                          color: context.colors.textHint,
                         ),
                       ),
                     ),
@@ -123,13 +125,13 @@ class _UserAdminScreenState extends State<UserAdminScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
 
           // Tabs
-          const _UserTabBar(),
+          _UserTabBar(),
 
           // Konten List Pengguna
-          const Expanded(child: _UserListContent()),
+          Expanded(child: _UserListContent()),
         ],
       ),
     );
@@ -137,66 +139,63 @@ class _UserAdminScreenState extends State<UserAdminScreen> {
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: const Color(0xFFF8F7F6).withValues(alpha: 0.80),
+      backgroundColor: context.colors.bgColor,
       elevation: 0,
-      scrolledUnderElevation: 0,
-      titleSpacing: 0,
-      flexibleSpace: ClipRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-          child: Container(color: Colors.transparent),
-        ),
-      ),
-      title: Padding(
-        padding: const EdgeInsets.only(left: 21),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppColors.primaryOrange.withValues(alpha: 0.10),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: const Icon(
-                Icons.bakery_dining_rounded,
-                color: AppColors.primaryOrange,
-                size: 22,
-              ),
+      centerTitle: false,
+      automaticallyImplyLeading: false,
+      title: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: context.colors.primaryOrange.withValues(alpha: 0.1), 
+              borderRadius: BorderRadius.circular(16)
             ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'roti515',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFF0F172A),
-                  ),
-                ),
-                Text(
-                  ' Portal Admin',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.primaryOrange,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+            child: Icon(Icons.bakery_dining_rounded, color: context.colors.primaryOrange, size: 22),
+          ),
+          SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("roti515", style: GoogleFonts.plusJakartaSans(fontSize: 20, fontWeight: FontWeight.bold, color: context.colors.textDark)),
+              Text("Portal Admin", style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w500, color: context.colors.primaryOrange)),
+            ],
+          ),
+        ],
       ),
       actions: [
+        Consumer<ThemeProvider>(
+          builder: (context, theme, _) => IconButton(
+            icon: Icon(
+              theme.isDarkMode ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+              color: context.colors.textDark,
+            ),
+            onPressed: () => theme.toggleTheme(!theme.isDarkMode),
+          ),
+        ),
         Padding(
-          padding: const EdgeInsets.only(right: 16),
-          child: CircleAvatar(
-            backgroundColor: AppColors.primaryOrange.withValues(alpha: 0.10),
-            child: const Icon(
-              Icons.account_circle_outlined,
-              color: AppColors.primaryOrange,
+          padding: EdgeInsets.only(right: 16),
+          child: GestureDetector(
+            onTap: () {
+              Navigator.push(context,
+                MaterialPageRoute(builder: (context) => AdminProfileScreen()),
+              );
+            },
+            child: Consumer<AuthProvider>(
+              builder: (context, auth, _) {
+                final photoUrl = auth.photoUrl;
+                final fullImageUrl = ApiService.getDisplayImage(photoUrl);
+
+                return CircleAvatar(
+                  backgroundColor: context.colors.primaryOrange.withValues(alpha: 0.1),
+                  backgroundImage: fullImageUrl.isNotEmpty
+                      ? NetworkImage(fullImageUrl)
+                      : null,
+                  child: fullImageUrl.isEmpty
+                      ? Icon(Icons.account_circle_outlined, color: context.colors.primaryOrange)
+                      : null,
+                );
+              },
             ),
           ),
         ),
@@ -216,24 +215,24 @@ class _UserTabBar extends StatelessWidget {
     final provider = context.watch<UserAdminProvider>();
 
     return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFFF8F7F6),
+      decoration: BoxDecoration(
+        color: context.colors.bgColor,
         border: Border(
           bottom: BorderSide(
-            color: Color(0xFFE2E8F0),
+            color: context.colors.divider,
             width: 1,
           ),
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: EdgeInsets.symmetric(horizontal: 16),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             _buildTabItem(context, 0, 'Semua', provider.activeTab),
-            const SizedBox(width: 24),
+            SizedBox(width: 24),
             _buildTabItem(context, 1, 'Admin', provider.activeTab),
-            const SizedBox(width: 24),
+            SizedBox(width: 24),
             _buildTabItem(context, 2, 'Pelanggan', provider.activeTab),
           ],
         ),
@@ -243,14 +242,14 @@ class _UserTabBar extends StatelessWidget {
 
   Widget _buildTabItem(BuildContext context, int index, String label, int activeTab) {
     final isActive = index == activeTab;
-    final activeColor = AppColors.primaryOrange;
-    final inactiveColor = const Color(0xFF64748B);
+    final activeColor = context.colors.primaryOrange;
+    final inactiveColor = context.colors.textGrey;
 
     return GestureDetector(
       onTap: () => context.read<UserAdminProvider>().setTab(index),
       behavior: HitTestBehavior.opaque,
       child: Container(
-        padding: const EdgeInsets.only(top: 8, bottom: 12, left: 4, right: 4),
+        padding: EdgeInsets.only(top: 8, bottom: 12, left: 4, right: 4),
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
@@ -267,7 +266,7 @@ class _UserTabBar extends StatelessWidget {
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 14,
                 fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                color: isActive ? const Color(0xFF0F172A) : inactiveColor,
+                color: isActive ? context.colors.textDark : inactiveColor,
               ),
             ),
           ],
@@ -288,44 +287,44 @@ class _UserListContent extends StatelessWidget {
     final provider = context.watch<UserAdminProvider>();
 
     if (provider.loadState == UserLoadState.loading) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppColors.primaryOrange),
+      return Center(
+        child: CircularProgressIndicator(color: context.colors.primaryOrange),
       );
     }
 
     if (provider.loadState == UserLoadState.error) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.cloud_off_rounded, color: AppColors.primaryOrange, size: 56),
-              const SizedBox(height: 16),
+              Icon(Icons.cloud_off_rounded, color: context.colors.primaryOrange, size: 56),
+              SizedBox(height: 16),
               Text(
                 'Gagal Memuat Pengguna',
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFF0F172A),
+                  color: context.colors.textDark,
                 ),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               Text(
                 provider.errorMessage,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 13,
-                  color: const Color(0xFF64748B),
+                  color: context.colors.textGrey,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 28),
+              SizedBox(height: 28),
               GestureDetector(
                 onTap: () => provider.fetchUsers(),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                  padding: EdgeInsets.symmetric(horizontal: 32, vertical: 14),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryOrange,
+                    color: context.colors.primaryOrange,
                     borderRadius: BorderRadius.circular(9999),
                   ),
                   child: Text(
@@ -349,18 +348,18 @@ class _UserListContent extends StatelessWidget {
     if (users.isEmpty) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(32),
+          padding: EdgeInsets.all(32),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-            Icon(Icons.person_off_rounded, color: AppColors.primaryOrange.withValues(alpha: 0.4), size: 64),
-              const SizedBox(height: 16),
+            Icon(Icons.person_off_rounded, color: context.colors.primaryOrange.withValues(alpha: 0.4), size: 64),
+              SizedBox(height: 16),
               Text(
                 'Tidak ada data pengguna',
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF64748B),
+                  color: context.colors.textGrey,
                 ),
               ),
             ],
@@ -370,10 +369,10 @@ class _UserListContent extends StatelessWidget {
     }
 
     return RefreshIndicator(
-      color: AppColors.primaryOrange,
+      color: context.colors.primaryOrange,
       onRefresh: () => provider.fetchUsers(),
       child: ListView.builder(
-        padding: const EdgeInsets.only(bottom: 100),
+        padding: EdgeInsets.only(bottom: 100),
         itemCount: users.length,
         itemBuilder: (ctx, i) => _UserListItem(user: users[i]),
       ),
@@ -393,19 +392,19 @@ class _UserListItem extends StatelessWidget {
     final bool isAdmin = user.role.toLowerCase() == 'admin';
     // Gunakan indikator hijau jika admin (aktif) atau pengguna baru? Kita asumsikan hijau untuk pengguna baru/admin, abu-abu kalau lama
     // Atau kita bisa gunakan hijau untuk admin, abu abu untuk pelanggan. (Sesuai desain)
-    final Color badgeColor = isAdmin ? const Color(0xFF4F46E5) : const Color(0xFFD47311);
-    final Color badgeBgColor = isAdmin ? const Color(0xFFE0E7FF) : const Color(0xFFD47311).withValues(alpha: 0.10);
+    final Color badgeColor = isAdmin ? Color(0xFF4F46E5) : Color(0xFFD47311);
+    final Color badgeBgColor = isAdmin ? Color(0xFFE0E7FF) : Color(0xFFD47311).withValues(alpha: 0.10);
     final String badgeText = isAdmin ? 'Admin' : 'Pelanggan';
     
     // Status dot color bisa juga aktif/hijau jika admin
-    final Color statusDotColor = isAdmin ? const Color(0xFF22C55E) : (user.timeAgo == 'Sekarang' ? const Color(0xFF22C55E) : const Color(0xFFCBD5E1));
+    final Color statusDotColor = isAdmin ? Color(0xFF22C55E) : (user.timeAgo == 'Sekarang' ? Color(0xFF22C55E) : Color(0xFFCBD5E1));
 
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: const BoxDecoration(
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
         color: Colors.transparent,
         border: Border(
-          bottom: BorderSide(color: Color(0xFFF1F5F9)),
+          bottom: BorderSide(color: context.colors.divider),
         ),
       ),
       child: Row(
@@ -418,9 +417,9 @@ class _UserListItem extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE2E8F0),
+                  color: context.colors.divider,
                   borderRadius: BorderRadius.circular(9999),
-                  border: Border.all(color: Colors.white, width: 2),
+                  border: Border.all(color: context.colors.surface, width: 2),
                 ),
                 child: Center(
                   child: Text(
@@ -428,7 +427,7 @@ class _UserListItem extends StatelessWidget {
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFF64748B),
+                      color: context.colors.textGrey,
                     ),
                   ),
                 ),
@@ -442,13 +441,13 @@ class _UserListItem extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: statusDotColor,
                     borderRadius: BorderRadius.circular(9999),
-                    border: Border.all(color: Colors.white, width: 2),
+                    border: Border.all(color: context.colors.surface, width: 2),
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: 16),
 
           // ── Tengah: Detail Nama & Email ──
           Expanded(
@@ -460,7 +459,7 @@ class _UserListItem extends StatelessWidget {
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: const Color(0xFF0F172A),
+                    color: context.colors.textDark,
                     height: 20 / 14,
                   ),
                   maxLines: 1,
@@ -471,7 +470,7 @@ class _UserListItem extends StatelessWidget {
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 12,
                     fontWeight: FontWeight.w400,
-                    color: const Color(0xFF64748B),
+                    color: context.colors.textGrey,
                     height: 16 / 12,
                   ),
                   maxLines: 1,
@@ -480,14 +479,14 @@ class _UserListItem extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
 
           // ── Kanan: Badge Role & Waktu Gabung ──
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: badgeBgColor,
                   borderRadius: BorderRadius.circular(9999),
@@ -505,31 +504,19 @@ class _UserListItem extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 4),
+              SizedBox(height: 4),
               Text(
                 isAdmin ? 'Aktif' : user.timeAgo,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 10,
                   fontWeight: FontWeight.w400,
-                  color: const Color(0xFF94A3B8),
+                  color: context.colors.textHint,
                   height: 1.5,
                 ),
               ),
             ],
           ),
 
-          // ── Tombol Hapus (Merah) ──
-          const SizedBox(width: 16),
-          GestureDetector(
-            onTap: () {
-              // Aksi hapus (bisa ditambahkan nanti)
-            },
-            child: const Icon(
-              Icons.delete_outline_rounded,
-              color: Color(0xFFEF4444),
-              size: 20,
-            ),
-          ),
         ],
       ),
     );
