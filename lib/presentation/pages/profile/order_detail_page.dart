@@ -13,11 +13,12 @@ class OrderDetailPage extends StatelessWidget {
     final items = (order['items'] as List?) ?? [];
     final String status = (order['status'] ?? 'Pending');
     final String orderId = order['id']?.toString() ?? '0';
+    final String orderRef = order['order_ref'] ?? '#ROTI515-$orderId';
     final String date = order['created_at']?.toString().substring(0, 10) ?? '-';
     final double total = (order['total'] ?? 0).toDouble();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F7F6),
+      backgroundColor: Color(0xFFF8F7F6),
       body: SafeArea(
         child: Column(
           children: [
@@ -26,14 +27,14 @@ class OrderDetailPage extends StatelessWidget {
 
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
+                padding: EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // --- STATUS CARD ---
-                    _buildStatusCard(status, orderId, date),
+                    _buildStatusCard(status, orderRef, date),
 
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
 
                     // --- ITEMS SECTION ---
                     Text(
@@ -41,18 +42,18 @@ class OrderDetailPage extends StatelessWidget {
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF0F172A),
+                        color: Color(0xFF0F172A),
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12),
                     ...items.map((item) => _buildOrderItem(item)),
 
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
 
                     // --- PAYMENT SUMMARY ---
                     _buildPaymentSummary(total),
                     
-                    const SizedBox(height: 40),
+                    SizedBox(height: 40),
                   ],
                 ),
               ),
@@ -65,12 +66,12 @@ class OrderDetailPage extends StatelessWidget {
 
   Widget _buildHeader(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8F7F6).withValues(alpha: 0.8),
+        color: Color(0xFFF8F7F6).withValues(alpha: 0.8),
         border: Border(
           bottom: BorderSide(
-            color: const Color(0xFFD47311).withValues(alpha: 0.1),
+            color: Color(0xFFD47311).withValues(alpha: 0.1),
           ),
         ),
       ),
@@ -79,24 +80,24 @@ class OrderDetailPage extends StatelessWidget {
         children: [
           IconButton(
             onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
-            color: const Color(0xFF0F172A),
+            icon: Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+            color: Color(0xFF0F172A),
           ),
           Text(
             "Detail Pesanan",
             style: GoogleFonts.plusJakartaSans(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: const Color(0xFF0F172A),
+              color: Color(0xFF0F172A),
             ),
           ),
-          const SizedBox(width: 48), // Spacer to center title
+          SizedBox(width: 48), // Spacer to center title
         ],
       ),
     );
   }
 
-  Widget _buildStatusCard(String status, String id, String date) {
+  Widget _buildStatusCard(String status, String ref, String date) {
     Color badgeBg;
     Color badgeText;
     String statusLabel;
@@ -105,23 +106,23 @@ class OrderDetailPage extends StatelessWidget {
       case 'completed':
       case 'success':
       case 'done':
-        badgeBg = const Color(0xFFDCFCE7);
-        badgeText = const Color(0xFF15803D);
+        badgeBg = Color(0xFFDCFCE7);
+        badgeText = Color(0xFF15803D);
         statusLabel = "Selesai";
         break;
       case 'processing':
-        badgeBg = const Color(0xFFFEF9C3);
-        badgeText = const Color(0xFFA16207);
+        badgeBg = Color(0xFFFEF9C3);
+        badgeText = Color(0xFFA16207);
         statusLabel = "Diproses";
         break;
       default:
-        badgeBg = const Color(0xFFFEE2E2);
-        badgeText = const Color(0xFFB91C1C);
+        badgeBg = Color(0xFFFEE2E2);
+        badgeText = Color(0xFFB91C1C);
         statusLabel = "Menunggu";
     }
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(32),
@@ -129,7 +130,7 @@ class OrderDetailPage extends StatelessWidget {
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 4),
           ),
         ],
       ),
@@ -141,26 +142,26 @@ class OrderDetailPage extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                   Text(
-                    "#$id",
+                  Text(
+                    ref,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF0F172A),
+                      color: Color(0xFF0F172A),
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4),
                   Text(
                     date,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 13,
-                      color: const Color(0xFF64748B),
+                      color: Color(0xFF64748B),
                     ),
                   ),
                 ],
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: badgeBg,
                   borderRadius: BorderRadius.circular(99),
@@ -189,12 +190,12 @@ class OrderDetailPage extends StatelessWidget {
     final String imageUrl = food['image_url'] ?? '';
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
+      margin: EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFD47311).withValues(alpha: 0.05)),
+        border: Border.all(color: Color(0xFFD47311).withValues(alpha: 0.05)),
       ),
       child: Row(
         children: [
@@ -207,11 +208,11 @@ class OrderDetailPage extends StatelessWidget {
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => Container(
                 width: 56, height: 56, color: Colors.grey.shade100,
-                child: const Icon(Icons.bakery_dining_rounded, color: Colors.grey),
+                child: Icon(Icons.bakery_dining_rounded, color: Colors.grey),
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -221,15 +222,15 @@ class OrderDetailPage extends StatelessWidget {
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF1E293B),
+                    color: Color(0xFF1E293B),
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: 4),
                 Text(
                   "$qty x Rp ${formatRupiah(price)}",
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 12,
-                    color: const Color(0xFF64748B),
+                    color: Color(0xFF64748B),
                   ),
                 ),
               ],
@@ -240,7 +241,7 @@ class OrderDetailPage extends StatelessWidget {
             style: GoogleFonts.plusJakartaSans(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: const Color(0xFF0F172A),
+              color: Color(0xFF0F172A),
             ),
           ),
         ],
@@ -250,16 +251,16 @@ class OrderDetailPage extends StatelessWidget {
 
   Widget _buildPaymentSummary(double total) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: const Color(0xFFD47311).withValues(alpha: 0.1)),
+        border: Border.all(color: Color(0xFFD47311).withValues(alpha: 0.1)),
       ),
       child: Column(
         children: [
           _buildSummaryRow("Subtotal", total),
-          const Divider(height: 24, thickness: 0.5),
+          Divider(height: 24, thickness: 0.5),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -268,7 +269,7 @@ class OrderDetailPage extends StatelessWidget {
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0F172A),
+                  color: Color(0xFF0F172A),
                 ),
               ),
               Text(
@@ -276,7 +277,7 @@ class OrderDetailPage extends StatelessWidget {
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 18,
                   fontWeight: FontWeight.w900,
-                  color: const Color(0xFFD47311),
+                  color: Color(0xFFD47311),
                 ),
               ),
             ],
@@ -288,7 +289,7 @@ class OrderDetailPage extends StatelessWidget {
 
   Widget _buildSummaryRow(String label, double value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -296,7 +297,7 @@ class OrderDetailPage extends StatelessWidget {
             label,
             style: GoogleFonts.plusJakartaSans(
               fontSize: 14,
-              color: const Color(0xFF64748B),
+              color: Color(0xFF64748B),
             ),
           ),
           Text(
@@ -304,7 +305,7 @@ class OrderDetailPage extends StatelessWidget {
             style: GoogleFonts.plusJakartaSans(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF1E293B),
+              color: Color(0xFF1E293B),
             ),
           ),
         ],
