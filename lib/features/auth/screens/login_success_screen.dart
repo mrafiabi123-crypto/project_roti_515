@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../core/constants/app_colors.dart';
-import '../../../routes/app_routes.dart';
+
+import '../providers/auth_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:roti_515/core/theme/app_theme.dart';
 
 /// Halaman sukses yang ditampilkan setelah user berhasil login.
 class LoginSuccessScreen extends StatefulWidget {
@@ -14,17 +16,19 @@ class LoginSuccessScreen extends StatefulWidget {
 
 class _LoginSuccessScreenState extends State<LoginSuccessScreen>
     with TickerProviderStateMixin {
-  // Animasi lingkaran sukses muncul (scale + fade)
+  // --- KONTROLER ANIMASI ---
+  
+  // 1. Animasi lingkaran sukses (skala & transparansi)
   late final AnimationController _circleCtrl;
   late final Animation<double> _circleScale;
   late final Animation<double> _circleFade;
 
-  // Animasi teks muncul dari bawah
+  // 2. Animasi teks informasi (muncul meluncur dari bawah)
   late final AnimationController _textCtrl;
   late final Animation<double> _textSlide;
   late final Animation<double> _textFade;
 
-  // Animasi tombol muncul
+  // 3. Animasi tombol interaksi (muncul di akhir)
   late final AnimationController _btnCtrl;
   late final Animation<double> _btnFade;
   late final Animation<double> _btnSlide;
@@ -33,24 +37,24 @@ class _LoginSuccessScreenState extends State<LoginSuccessScreen>
   void initState() {
     super.initState();
 
-    // ── Step 1: ikon check muncul (elastis) ──────────────────────────────
+    // ── STEP 1: INISIALISASI ANIMASI IKON (Efek Elastis) ───────────────────
     _circleCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 600),
+      duration: Duration(milliseconds: 600),
     );
     _circleScale = CurvedAnimation(
       parent: _circleCtrl,
-      curve: Curves.elasticOut,
+      curve: Curves.elasticOut, // Efek membal saat muncul
     );
     _circleFade = CurvedAnimation(
       parent: _circleCtrl,
-      curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
+      curve: Interval(0.0, 0.5, curve: Curves.easeOut),
     );
 
-    // ── Step 2: teks slide dari bawah ──────────────────────────────────
+    // ── STEP 2: INISIALISASI ANIMASI TEKS (Efek Meluncur) ──────────────────
     _textCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 500),
+      duration: Duration(milliseconds: 500),
     );
     _textSlide = Tween<double>(begin: 30, end: 0)
         .chain(CurveTween(curve: Curves.easeOut))
@@ -60,34 +64,37 @@ class _LoginSuccessScreenState extends State<LoginSuccessScreen>
       curve: Curves.easeOut,
     );
 
-    // ── Step 3: tombol muncul ──────────────────────────────────────────
+    // ── STEP 3: INISIALISASI ANIMASI TOMBOL ───────────────────────────────
     _btnCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 400),
+      duration: Duration(milliseconds: 400),
     );
     _btnFade = CurvedAnimation(parent: _btnCtrl, curve: Curves.easeOut);
     _btnSlide = Tween<double>(begin: 20, end: 0)
         .chain(CurveTween(curve: Curves.easeOut))
         .animate(_btnCtrl);
 
-    // Jalankan animasi berurutan
+    // Menjalankan urutan animasi secara otomatis saat halaman dibuka
     _runSequence();
   }
 
+  /// FUNGSI RUN SEQUENCE:
+  /// Mengatur waktu tunggu agar animasi muncul satu per satu (Sekuensial).
   Future<void> _runSequence() async {
-    await Future.delayed(const Duration(milliseconds: 150));
+    await Future.delayed(Duration(milliseconds: 150));
     if (!mounted) return;
-    _circleCtrl.forward();
-    await Future.delayed(const Duration(milliseconds: 400));
+    _circleCtrl.forward(); // Jalankan animasi ikon
+    await Future.delayed(Duration(milliseconds: 400));
     if (!mounted) return;
-    _textCtrl.forward();
-    await Future.delayed(const Duration(milliseconds: 300));
+    _textCtrl.forward(); // Jalankan animasi teks
+    await Future.delayed(Duration(milliseconds: 300));
     if (!mounted) return;
-    _btnCtrl.forward();
+    _btnCtrl.forward(); // Jalankan animasi tombol
   }
 
   @override
   void dispose() {
+    // Membersihkan semua kontroler animasi agar tidak memakan memori (Memory Leak)
     _circleCtrl.dispose();
     _textCtrl.dispose();
     _btnCtrl.dispose();
@@ -97,32 +104,31 @@ class _LoginSuccessScreenState extends State<LoginSuccessScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F7F6),
+      backgroundColor: context.colors.authBackground,
       body: Stack(
         children: [
-          // ── Latar radial gradient halus (opacity sangat rendah) ──────
+          // Latar belakang dengan gradasi halus (Custom Painter)
           Positioned.fill(
-            child: CustomPaint(painter: _RadialBgPainter()),
+            child: CustomPaint(painter: _RadialBgPainter(context.colors.primaryOrange)),
           ),
 
-          // ── Konten utama ─────────────────────────────────────────────
           SafeArea(
             child: Column(
               children: [
-                const Spacer(flex: 2),
+                Spacer(flex: 2),
 
-                // Ikon sukses
+                // WIDGET IKON SUKSES (Dibatasi Animasi Transisi)
                 ScaleTransition(
                   scale: _circleScale,
                   child: FadeTransition(
                     opacity: _circleFade,
-                    child: const _SuccessIcon(),
+                    child: _SuccessIcon(),
                   ),
                 ),
 
-                const SizedBox(height: 32),
+                SizedBox(height: 32),
 
-                // Judul & Subjudul
+                // WIDGET INFORMASI TEKS (AnimatedBuilder untuk efek Slide)
                 AnimatedBuilder(
                   animation: _textCtrl,
                   builder: (_, child) => Transform.translate(
@@ -132,12 +138,12 @@ class _LoginSuccessScreenState extends State<LoginSuccessScreen>
                       child: child,
                     ),
                   ),
-                  child: const _LoginInfo(),
+                  child: _LoginInfo(),
                 ),
 
-                const Spacer(flex: 3),
+                Spacer(flex: 3),
 
-                // Tombol + branding
+                // WIDGET TOMBOL AKSI (Navigasi Berdasarkan Role)
                 AnimatedBuilder(
                   animation: _btnCtrl,
                   builder: (_, child) => Transform.translate(
@@ -148,22 +154,29 @@ class _LoginSuccessScreenState extends State<LoginSuccessScreen>
                     ),
                   ),
                   child: _BottomActions(
-                    onNext: () {
+                    onNext: () async {
+                      // Mengambil argumen data auth dari rute sebelumnya
                       final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-                      final isAuthAdmin = args?['isAdmin'] ?? false;
-                      
-                      if (isAuthAdmin) {
-                        Navigator.pushNamedAndRemoveUntil(
-                            context, AppRoutes.adminDashboard, (route) => false);
-                      } else {
-                        Navigator.pushNamedAndRemoveUntil(
-                            context, AppRoutes.mainNav, (route) => false);
+                      if (args != null) {
+                        // Tunggu proses login (simpan sesi) selesai
+                        await Provider.of<AuthProvider>(context, listen: false).login(
+                          args['token'],
+                          role: args['role'],
+                          name: args['name'],
+                          photoUrl: args['photoUrl'],
+                        );
                       }
+                      
+                      if (!context.mounted) return;
+
+                      // Bersihkan stack dan kembali ke rute utama ('/')
+                      // main.dart akan otomatis menentukan apakah ke Home atau Admin Dashboard
+                      Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
                     },
                   ),
                 ),
 
-                const SizedBox(height: 32),
+                SizedBox(height: 32),
               ],
             ),
           ),
@@ -173,11 +186,11 @@ class _LoginSuccessScreenState extends State<LoginSuccessScreen>
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// RADIAL BACKGROUND PAINTER
-// ─────────────────────────────────────────────────────────────────────────────
-
+/// CUSTOM PAINTER: Membuat efek cahaya gradasi di latar belakang.
 class _RadialBgPainter extends CustomPainter {
+  final Color color;
+  _RadialBgPainter(this.color);
+
   @override
   void paint(Canvas canvas, Size size) {
     final rect = Rect.fromLTWH(0, 0, size.width, size.height);
@@ -186,8 +199,8 @@ class _RadialBgPainter extends CustomPainter {
         center: Alignment.center,
         radius: 0.75,
         colors: [
-          const Color(0xFFD47311).withValues(alpha: 0.06),
-          const Color(0xFFD47311).withValues(alpha: 0.0),
+          color.withValues(alpha: 0.06),
+          color.withValues(alpha: 0.0),
         ],
       ).createShader(rect);
     canvas.drawRect(rect, paint);
@@ -197,16 +210,13 @@ class _RadialBgPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SUCCESS ICON
-// ─────────────────────────────────────────────────────────────────────────────
-
+/// SUCCESS ICON: Widget visual ikon centang hijau.
 class _SuccessIcon extends StatelessWidget {
   const _SuccessIcon();
 
   @override
   Widget build(BuildContext context) {
-    const Color greenColor = Color(0xFF22C55E);
+    Color greenColor = context.colors.success;
 
     return Container(
       width: 96,
@@ -215,7 +225,7 @@ class _SuccessIcon extends StatelessWidget {
         color: greenColor.withValues(alpha: 0.10),
         shape: BoxShape.circle,
       ),
-      child: const Icon(
+      child: Icon(
         Icons.check_circle_rounded,
         color: greenColor,
         size: 50,
@@ -224,10 +234,7 @@ class _SuccessIcon extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// LOGIN INFO
-// ─────────────────────────────────────────────────────────────────────────────
-
+/// LOGIN INFO: Berisi teks judul dan ucapan selamat datang.
 class _LoginInfo extends StatelessWidget {
   const _LoginInfo();
 
@@ -235,20 +242,18 @@ class _LoginInfo extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Judul
         Text(
           'Login Berhasil',
           textAlign: TextAlign.center,
           style: GoogleFonts.plusJakartaSans(
             fontSize: 32,
             fontWeight: FontWeight.w700,
-            color: const Color(0xFF0F172A),
+            color: context.colors.textDark,
             height: 40 / 32,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
 
-        // Subjudul
         RichText(
           textAlign: TextAlign.center,
           text: TextSpan(
@@ -258,7 +263,7 @@ class _LoginInfo extends StatelessWidget {
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 18,
                   fontWeight: FontWeight.w400,
-                  color: const Color(0xFF64748B),
+                  color: context.colors.textGrey,
                   height: 28 / 18,
                 ),
               ),
@@ -267,7 +272,7 @@ class _LoginInfo extends StatelessWidget {
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.primaryOrange,
+                  color: context.colors.primaryOrange,
                 ),
               ),
             ],
@@ -278,10 +283,7 @@ class _LoginInfo extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// BOTTOM ACTIONS
-// ─────────────────────────────────────────────────────────────────────────────
-
+/// BOTTOM ACTIONS: Berisi tombol interaktif dengan efek animasi saat ditekan.
 class _BottomActions extends StatefulWidget {
   final VoidCallback onNext;
   const _BottomActions({required this.onNext});
@@ -300,8 +302,8 @@ class _BottomActionsState extends State<_BottomActions>
     super.initState();
     _pressCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 100),
-      reverseDuration: const Duration(milliseconds: 150),
+      duration: Duration(milliseconds: 100),
+      reverseDuration: Duration(milliseconds: 150),
     );
     _pressScale = Tween<double>(begin: 1.0, end: 0.96)
         .chain(CurveTween(curve: Curves.easeInOut))
@@ -314,6 +316,7 @@ class _BottomActionsState extends State<_BottomActions>
     super.dispose();
   }
 
+  /// HANDLE PRESS: Memberikan efek membal pada tombol sebelum lanjut ke halaman berikutnya.
   Future<void> _handlePress() async {
     await _pressCtrl.forward();
     await _pressCtrl.reverse();
@@ -323,10 +326,9 @@ class _BottomActionsState extends State<_BottomActions>
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 40),
+      padding: EdgeInsets.symmetric(horizontal: 40),
       child: Column(
         children: [
-          // Tombol "Lanjutkan ke Beranda"
           GestureDetector(
             onTap: _handlePress,
             child: ScaleTransition(
@@ -334,13 +336,13 @@ class _BottomActionsState extends State<_BottomActions>
               child: Container(
                 height: 56,
                 decoration: BoxDecoration(
-                  color: AppColors.primaryOrange,
+                  color: context.colors.primaryOrange,
                   borderRadius: BorderRadius.circular(9999),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primaryOrange.withValues(alpha: 0.30),
+                      color: context.colors.primaryOrange.withValues(alpha: 0.30),
                       blurRadius: 16,
-                      offset: const Offset(0, 8),
+                      offset: Offset(0, 8),
                     ),
                   ],
                 ),
@@ -350,7 +352,7 @@ class _BottomActionsState extends State<_BottomActions>
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.white,
+                      color: context.colors.white,
                       letterSpacing: 0.4,
                       height: 24 / 16,
                     ),
@@ -360,15 +362,14 @@ class _BottomActionsState extends State<_BottomActions>
             ),
           ),
 
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
 
-          // Branding kecil
           Text(
             'roti515',
             style: GoogleFonts.plusJakartaSans(
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: const Color(0xFF94A3B8),
+              color: context.colors.textHint,
               height: 20 / 14,
             ),
           ),

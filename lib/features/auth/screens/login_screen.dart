@@ -1,28 +1,24 @@
 import 'dart:convert'; // Untuk melakukan encoding/decoding JSON saat mengirim data ke API
 import 'package:flutter/material.dart'; // Library utama Flutter untuk membangun antarmuka pengguna (UI)
 import 'package:http/http.dart' as http; // Digunakan untuk melakukan HTTP request (GET, POST, dll) ke backend
-import 'package:provider/provider.dart'; // Digunakan untuk state management, menghubungkan UI dengan provider
+
 import 'package:google_fonts/google_fonts.dart'; // Library untuk menggunakan font Google secara langsung
 
 // Mengimpor konstanta warna yang digunakan dalam aplikasi
-import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/premium_snackbar.dart';
 // Mengimpor daftar rute untuk navigasi antar halaman
 import '../../../routes/app_routes.dart';
 // Mengimpor file ApiService yang menyimpan alamat endpoint backend
 import '../../../core/network/api_service.dart';
-// Mengimpor AuthProvider untuk mengelola token dan sesi pengguna setelah login
-import '../providers/auth_provider.dart';
+
 
 // Mengimpor komponen-komponen UI modular khusus untuk halaman login
-import '../widgets/login_back_button.dart';
 import '../widgets/login_logo.dart';
 import '../widgets/login_tab_selector.dart';
 import '../widgets/login_input_field.dart';
 import '../widgets/login_button.dart';
-import '../widgets/login_divider.dart';
-import '../widgets/login_google_button.dart';
 import '../widgets/login_footer.dart';
+import 'package:roti_515/core/theme/app_theme.dart';
 
 // Kelas utama untuk Halaman Login. Menggunakan StatefulWidget karena halamannya interaktif dan state-nya bisa berubah.
 class LoginScreen extends StatefulWidget {
@@ -89,7 +85,7 @@ class _LoginScreenState extends State<LoginScreen>
           "email": _emailController.text.trim(), // Data email, hapus spasi berlebih
           "password": _passwordController.text, // Data password
         }),
-      ).timeout(const Duration(seconds: 10)); // Diberi batas waktu 10 detik
+      ).timeout(Duration(seconds: 10)); // Diberi batas waktu 10 detik
 
       // Mengurai string JSON dari server menjadi objek (Map) Dart
       final data = jsonDecode(response.body);
@@ -100,26 +96,20 @@ class _LoginScreenState extends State<LoginScreen>
         final String token = data['token'];
         final String userRole = data['user']['role'];
         final String userName = data['user']['name'];
+        final String? photoUrl = data['user']['photo_url'];
 
-        // Simpan token ke state AuthProvider menggunakan Provider
-        Provider.of<AuthProvider>(context, listen: false).login(
-          token,
-          role: userRole,
-          name: userName,
+        // Langsung pindah ke layar sukses dan bawa data auth-nya
+        Navigator.pushReplacementNamed(
+          context, 
+          AppRoutes.loginSuccess, 
+          arguments: {
+            'token': token,
+            'role': userRole,
+            'name': userName,
+            'photoUrl': photoUrl,
+            'isAdmin': userRole == 'admin'
+          }
         );
-        
-        // Tampilkan pesan suskes login
-        PremiumSnackbar.showSuccess(context, "Selamat datang, $userName!");
-
-        // Jika user adalah admin, navigasikan ke Dashboard Admin
-        if (userRole == 'admin') {
-          Navigator.pushNamedAndRemoveUntil(
-              context, AppRoutes.loginSuccess, (route) => false, arguments: {'isAdmin': true});
-        } else {
-          // Jika bukan admin, masuk ke halaman Menu Utama Aplikasi
-          Navigator.pushNamedAndRemoveUntil(
-              context, AppRoutes.loginSuccess, (route) => false, arguments: {'isAdmin': false});
-        }
       } else if (mounted) {
         // Tampilkan pesan error jika status code bukan 200 (misalnya salah password)
         PremiumSnackbar.showError(context, data['error'] ?? "Gagal login");
@@ -139,24 +129,21 @@ class _LoginScreenState extends State<LoginScreen>
   Widget build(BuildContext context) {
     // Scaffold merepresentasikan kerangka layar dasar dari desain material Flutter
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F7F6), // Set warna latar layar
+      backgroundColor: context.colors.authBackground, // Set warna latar layar
       body: SafeArea( // SafeArea menjaga agar widget tidak tertutup oleh poni/status bar layar HP
         child: SingleChildScrollView( // Agar seluruh isi halaman bisa di-scroll ke bawah saat keyboard muncul
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0), // Jarak di kanan kiri
+          padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0), // Jarak di kanan kiri
           child: Column( // Menata semua widget secara berurut ke bawah (vertikal)
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Menampilkan tombol Back jika kita sedang tidak di halaman terdalam (root)
-              if (Navigator.canPop(context)) const LoginBackButton(),
-              if (Navigator.canPop(context)) const SizedBox(height: 16),
 
               // Widget Kustom Logo Login Aplikasi
-              const LoginLogo(),
-              const SizedBox(height: 32),
+              LoginLogo(),
+              SizedBox(height: 32),
               
               // Menampilkan Pilihan Tab (User / Admin)
               LoginTabSelector(controller: _tabController),
-              const SizedBox(height: 32),
+              SizedBox(height: 32),
               
               // Widget kustom Input TextField untuk Email
               LoginInputField(
@@ -165,7 +152,7 @@ class _LoginScreenState extends State<LoginScreen>
                 hint: "Masukkan Email Atau Nama Pengguna",
                 icon: Icons.mail_outline_rounded,
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               
               // Widget kustom Input TextField untuk Kata Sandi (Password)
               LoginInputField(
@@ -179,34 +166,30 @@ class _LoginScreenState extends State<LoginScreen>
               ),
 
               // Bagian Lupa Password yang diletakkan rata kanan (centerRight)
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () => Navigator.pushNamed(context, AppRoutes.forgotPassword),
-                  child: Text(
-                    "Lupa Password?",
-                    style: GoogleFonts.plusJakartaSans(
-                      color: AppColors.primaryOrange,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
+              if (_tabController.index == 0) // Hanya tampil di tab User
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => Navigator.pushNamed(context, AppRoutes.forgotPassword),
+                    child: Text(
+                      "Lupa Password?",
+                      style: GoogleFonts.plusJakartaSans(
+                        color: context.colors.primaryOrange,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
 
               // Tombol Login Kustom yang menyematkan status memuat (loading) dan trigger fungsi _login
               LoginButton(isLoading: _isLoading, onPressed: _login),
-              const SizedBox(height: 32),
+              SizedBox(height: 32),
 
-              // Jika saat ini tab aktif adalah ke-0 (Tab User), tampilkan tombol masuk alternatif (Google/Daftar)
-              if (_tabController.index == 0) ...[
-                const LoginDivider(), // Widget pemisah ("Atau Masuk Dengan")
-                const SizedBox(height: 24),
-                const LoginGoogleButton(), // Tombol Login Google
-                const SizedBox(height: 32),
-                const LoginFooter(), // Widget tulisan "Belum punya akun? Daftar"
-              ],
+              // Widget tulisan "Belum punya akun? Daftar" - Hanya tampil di tab User
+              if (_tabController.index == 0)
+                LoginFooter(),
               
               const SizedBox(height: 40), // Jarak terluar agar isi tidak mepet di akhir guliran layar
             ],
